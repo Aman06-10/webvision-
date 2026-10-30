@@ -1,0 +1,428 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { api, ApiError, type Application, type AuthorityResult, type Lang } from './api'
+import { speak, speechSupported, startBrowserSpeech, startRecording } from './audio'
+import Stamp from './Stamp'
+import { useT, type Key } from './i18n'
+
+const MAX = 3000
+const BAD = /[^\p{L}\p{M}\p{N} \n\t.,;:()\-/'"?!%&@#+_[\]₹]/gu
+const EDITABLE = ['DRAFT', 'PAYMENT_FAILED']
+const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+type Props = { email: string; setEmail: (e: string) => void; resume: Application | null }
+
+function Speaker() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 9v6h4l5 4V5L8 9H4z" /><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+    </svg>
+  )
+}
+
+function Check() {
+  return (
+    <svg className="check" viewBox="0 0 24 24" aria-hidden>
+      <circle cx="12" cy="12" r="10.5" /><path d="M7 12.5l3.2 3.2L17 9" />
+    </svg>
+  )
+}
+
+export default function RequestFlow({ email, setEmail, resume }: Props) {
+  const { t } = useT()
+  const [app, setApp] = useState<Application | null>(resume)
+  const [emailDraft, setEmailDraft] = useState(email)
+  const [langs, setLangs] = useState<Record<string, Lang>>({})
+  const [stt, setStt] = useState(false)
+  const [quality, setQuality] = useState<'verified' | 'beta'>('verified')
+  const [step, setStep] = useState(1)
+
+  const [src, setSrc] = useState('hi')
+  const [target, setTarget] = useState<'en' | 'hi'>('en')
+  const [original, setOriginal] = useState('')
+  const [draft, setDraft] = useState(resume?.draft ?? '')
+  const [via, setVia] = useState('')
+  const [fresh, setFresh] = useState(false)
+  const [revealing, setRevealing] = useState(false)
+  const [busy, setBusy] = useState('')
+  const [notice, setNotice] = useState('')
+  const [saveState, setSaveState] = useState<'' | 'saving' | 'saved'>('')
+
+  const [rec, setRec] = useState<null | { stop: () => unknown }>(null)
+  const [auth, setAuth] = useState<AuthorityResult | null>(null)
+  const [authList, setAuthList] = useState<{ key: string; name: string; level: string }[]>([])
+  const [chosen, setChosen] = useState('')
+  const [scenario, setScenario] = useState('success')
+  const payKey = useRef(crypto.randomUUID())
+  const timer = useRef<number>()
+
+  useEffect(() => {
+    api.languages().then(setLangs).catch(() => {})
+    api.health().then(h => setStt(h.stt)).catch(() => {})
+    api.authorities().then(setAuthList).catch(() => {})
+    if (resume) {
+      api.get(resume.id).then(a => {
+        setApp(a); setDraft(a.draft)
+        if (a.authority_key) setChosen(a.authority_key)
+        if (a.state !== 'DRAFT') setStep(3)
+      })
+    }
+  }, [resume])
+
+  const editable = !!app && EDITABLE.includes(app.state)
+  const bad = useMemo(() => [...new Set(draft.match(BAD) ?? [])], [draft])
+  const over = draft.length - MAX
+  const draftOk = draft.trim().length > 0 && bad.length === 0 && over <= 0 && !revealing
+  const confirmed = !!app?.authority_confirmed
+  const reach = confirmed ? 3 : draftOk ? 2 : 1
+
+  useEffect(() => {
+    if (!app || !editable || revealing) return
+    setSaveState('saving')
+    const h = setTimeout(() => {
+      api.saveDraft(app.id, draft, src, original).then(() => setSaveState('saved')).catch(() => setSaveState(''))
+    }, 1200)
+    return () => clearTimeout(h)
+  }, [draft, original, src, app?.id, editable, revealing])
+
+  useEffect(() => {
+    if (!app || app.state !== 'PAYMENT_PENDING') return
+    const h = setInterval(() => api.get(app.id).then(setApp).catch(() => {}), 2000)
+    return () => clearInterval(h)
+  }, [app?.id, app?.state])
+
+  useEffect(() => { if (app?.state === 'PAYMENT_FAILED') payKey.current = crypto.randomUUID() }, [app?.state])
+
+  // entering step 2 looks up the authority on its own
+  useEffect(() => {
+    if (step === 2 && !auth && draftOk && !confirmed) findAuth()
+  }, [step])
+
+  const fail = (e: unknown) => setNotice(
+    e instanceof ApiError && e.status === 503 ? t('svc_busy')
+      : e instanceof ApiError && typeof e.detail === 'string' ? e.detail : t('err'))
+
+  function reveal(text: string) {
+    window.clearInterval(timer.current)
+    setFresh(true)
+    if (reduced()) { setDraft(text); return }
+    setRevealing(true)
+    const stepSize = Math.max(1, Math.ceil(text.length / 80))
+    let i = 0
+    timer.current = window.setInterval(() => {
+      i += stepSize
+      setDraft(text.slice(0, i))
+      if (i >= text.length) { window.clearInterval(timer.current); setRevealing(false) }
+    }, 16)
+  }
+  useEffect(() => () => window.clearInterval(timer.current), [])
+
+  async function begin(ev: React.FormEvent) {
+    ev.preventDefault()
+    try { const a = await api.create(emailDraft.trim()); setEmail(a.email); setApp(a) } catch (e) { fail(e) }
+  }
+
+  async function toDraft(text: string) {
+    setBusy('working'); setNotice('')
+    try {
+      const r = await api.translate(text, src, target)
+      reveal(r.translated); setVia(r.engine === 'none' ? '' : r.engine); setQuality(r.quality ?? 'verified')
+    } catch (e) { fail(e) } finally { setBusy('') }
+  }
+
+  async function toggleMic() {
+    setNotice('')
+    if (rec) { await rec.stop(); setRec(null); return }
+    try {
+      if (stt) {
+        const r = await startRecording()
+        setRec({ stop: async () => {
+          setBusy('working')
+          try {
+            const out = await api.transcribe(await r.stop(), src, target)
+            setOriginal(out.original); reveal(out.translated); setVia(out.engine); setQuality(out.quality ?? 'verified')
+          } catch (e) { fail(e) } finally { setBusy('') }
+        } })
+      } else if (speechSupported()) {
+        let latest = ''
+        setRec(startBrowserSpeech(src, txt => { latest = txt; setOriginal(txt) }, () => {
+          setRec(null); if (latest) toDraft(latest)
+        }))
+      } else setNotice(t('no_speech'))
+    } catch { setNotice(t('mic_denied')) }
+  }
+
+  async function tidy() {
+    setBusy('working')
+    try { const r = await api.refine(draft); reveal(r.draft); setVia('nvidia-llm') } catch (e) { fail(e) } finally { setBusy('') }
+  }
+
+  async function findAuth() {
+    setBusy('auth'); setNotice('')
+    try { const r = await api.findAuthority(draft); setAuth(r); setChosen(r.key === 'unknown' ? '' : r.key) }
+    catch (e) { fail(e) } finally { setBusy('') }
+  }
+
+  async function confirmAuth() {
+    if (!app || !chosen) return
+    try { await api.confirmAuthority(app.id, chosen); setApp(await api.get(app.id)); setStep(3) } catch (e) { fail(e) }
+  }
+
+  async function pay() {
+    if (!app) return
+    setBusy('paying'); setNotice('')
+    try { await api.pay(app.id, payKey.current, scenario) } catch (e) { fail(e) }
+    try { setApp(await api.get(app.id)) } finally { setBusy('') }
+  }
+
+  if (!app) {
+    return (
+      <section className="start rise" aria-labelledby="start-h">
+        <div className="start-art" aria-hidden>
+          <span /><span /><span />
+        </div>
+        <h1 id="start-h" className="page-title">{t('start_h')}</h1>
+        <p className="lede">{t('start_p')}</p>
+        <form onSubmit={begin} className="row-form">
+          <label className="field"><span>{t('email')}</span>
+            <input type="email" required autoComplete="email" value={emailDraft} onChange={e => setEmailDraft(e.target.value)} />
+          </label>
+          <button className="btn btn-primary" type="submit">{t('start')}</button>
+        </form>
+        {notice && <p role="alert" className="note bad">{notice}</p>}
+      </section>
+    )
+  }
+
+  const confLabel = (c: number) => (c >= 0.7 ? t('high') : c >= 0.45 ? t('medium') : t('low'))
+  const locked = !editable
+  const authName = authList.find(a => a.key === (app.authority_key ?? chosen))?.name
+  const stepsMeta = [1, 2, 3] as const
+
+  // payment timeline state
+  const st = app.state
+  const tl = [
+    { k: 'tl_start', s: st === 'DRAFT' ? (busy === 'paying' ? 'active' : 'todo') : 'done' },
+    { k: 'tl_bank', s: st === 'SUBMITTED' ? 'done' : st === 'PAYMENT_PENDING' ? 'active' : st === 'PAYMENT_FAILED' ? 'failed' : 'todo' },
+    { k: 'tl_done', s: st === 'SUBMITTED' ? 'done' : 'todo' },
+  ]
+
+  return (
+    <div className="flow">
+      {busy && <div className="topbar" aria-hidden />}
+
+      <nav className="stepper" aria-label="Progress">
+        {stepsMeta.map(n => {
+          const done = n < step || (n === 3 && st === 'SUBMITTED')
+          const cls = done ? 'done' : n === step ? 'current' : n <= reach ? 'open' : 'todo'
+          return (
+            <button key={n} className={`st ${cls}`} disabled={n > reach} onClick={() => setStep(n)} aria-current={n === step ? 'step' : undefined}>
+              <span className="st-dot">{done ? <Check /> : n}</span>
+              <span className="st-label">{t(`step_${n}` as Key)}</span>
+            </button>
+          )
+        })}
+        <div className="st-line" style={{ ['--p' as string]: `${((Math.min(step, 3) - 1) / 2) * 100}%` }} aria-hidden />
+        <div className="st-meta">
+          <div className="mono small muted">#{String(app.id).padStart(4, '0')}</div>
+          <Stamp state={app.state} />
+        </div>
+      </nav>
+
+      <div className="panel" key={step}>
+        {/* STEP 1 */}
+        {step === 1 && (
+          <section aria-labelledby="h1" className="rise">
+            <h1 id="h1" className="page-title">{t('s1')}</h1>
+            <p className="lede">{t('s1_p')}</p>
+
+            <div className="cols">
+              <div className="col">
+                <div className="pair">
+                  <label className="field"><span>{t('speak_lang')}</span>
+                    <select value={src} onChange={e => setSrc(e.target.value)} disabled={locked}>
+                      {Object.entries(langs).map(([k, v]) => <option key={k} value={k}>{v.name}{v.quality === 'beta' ? ` (${t('beta')})` : ''}</option>)}
+                    </select>
+                  </label>
+                  <label className="field"><span>{t('draft_lang')}</span>
+                    <select value={target} onChange={e => setTarget(e.target.value as 'en' | 'hi')} disabled={locked}>
+                      <option value="en">English</option><option value="hi">हिन्दी</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div className="voice">
+                  <button type="button" className={rec ? 'mic recording' : 'mic'} onClick={toggleMic}
+                    disabled={locked || busy === 'working'} aria-pressed={!!rec} aria-label={rec ? t('stop') : t('speak')}>
+                    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+                    </svg>
+                  </button>
+                  <div className="voice-text" aria-live="polite">
+                    <strong>{rec ? t('stop') : t('speak')}</strong>
+                    <span className="muted">{rec ? t('listening') : busy === 'working' ? t('working') : t('or_type')}</span>
+                  </div>
+                  <div className={rec ? 'wave on' : 'wave'} aria-hidden>
+                    {Array.from({ length: 9 }, (_, i) => <span key={i} style={{ ['--i' as string]: i }} />)}
+                  </div>
+                </div>
+
+                <label className="field"><span>{t('your_words')}</span>
+                  <textarea rows={6} value={original} onChange={e => setOriginal(e.target.value)} disabled={locked} lang={src} />
+                </label>
+                <button className="btn" type="button" onClick={() => toDraft(original)} disabled={locked || !original.trim() || !!busy}>
+                  {t('make_draft')} <span aria-hidden>→</span>
+                </button>
+              </div>
+
+              <div className="col">
+                <div className={fresh && !revealing ? 'sheet flash' : 'sheet'} onAnimationEnd={() => setFresh(false)}>
+                  <div className="sheet-head">
+                    <span>{t('official')} · {target === 'en' ? 'English' : 'हिन्दी'}</span>
+                    <span className="small muted" aria-live="polite">{saveState === 'saving' ? t('saving') : saveState === 'saved' ? t('saved') : ''}</span>
+                  </div>
+                  <textarea className="paper" rows={11} value={draft} readOnly={revealing}
+                    onChange={e => { setDraft(e.target.value); setVia('') }} disabled={locked} aria-label={t('official')} lang={target} />
+                  <div className="sheet-foot">
+                    <span className={over > 0 ? 'mono small bad-t' : 'mono small'}>{draft.length} / {MAX} {t('counter')}</span>
+                    {via && <span className="small muted">{t('via')}: {via}</span>}
+                    <button className="btn btn-quiet btn-sm" type="button" onClick={() => speak(draft, target, api.speak)} disabled={!draft.trim() || revealing} aria-label={t('listen')}><Speaker />{t('listen')}</button>
+                    <button className="btn btn-quiet btn-sm" type="button" onClick={tidy} disabled={locked || !draft.trim() || !!busy}>{t('tidy')}</button>
+                  </div>
+                </div>
+                {over > 0 && <p role="alert" className="note bad">{t('too_long')} {over}</p>}
+                {bad.length > 0 && (
+                  <p role="alert" className="note bad">
+                    {t('bad_chars')} <span className="mono">{bad.join(' ')}</span>{' '}
+                    <button type="button" className="link" onClick={() => setDraft(draft.replace(BAD, ''))}>{t('remove_bad')}</button>
+                  </p>
+                )}
+                {quality === 'beta' && via && !revealing && <p className="note warn" role="alert">{t('beta_warn')}</p>}
+                {via && !revealing && draftOk && quality === 'verified' && <p className="note ok" role="status">{t('draft_ready')}</p>}
+              </div>
+            </div>
+
+            <div className="actions">
+              <span />
+              <button className="btn btn-primary" type="button" onClick={() => setStep(2)} disabled={!draftOk}>{t('next')} <span aria-hidden>→</span></button>
+            </div>
+          </section>
+        )}
+
+        {/* STEP 2 */}
+        {step === 2 && (
+          <section aria-labelledby="h2" className="rise">
+            <h1 id="h2" className="page-title">{t('s2')}</h1>
+            <p className="lede">{t('s2_p')}</p>
+
+            {busy === 'auth' && <div className="skeleton" role="status"><span /><span /><span className="sr-only">{t('checking_auth')}</span></div>}
+
+            {auth && busy !== 'auth' && (
+              <div className="result rise" aria-live="polite">
+                <div className="small muted">{t('likely')}</div>
+                <div className="result-name">{auth.authority}</div>
+                {auth.portal && <div>{t('portal')}: <strong>{auth.portal}</strong></div>}
+                <div className="meter" aria-label={`${t('conf')}: ${confLabel(auth.confidence)}`}>
+                  <div className="meter-bar"><i style={{ ['--w' as string]: `${Math.max(6, auth.confidence * 100)}%` }} /></div>
+                  <span className="small">{t('conf')}: <strong>{confLabel(auth.confidence)}</strong> · {auth.source}</span>
+                </div>
+                <div className="muted">{auth.reason}</div>
+              </div>
+            )}
+
+            {(auth || confirmed) && busy !== 'auth' && (
+              <>
+                <label className="field narrow"><span>{t('change')}</span>
+                  <select value={chosen} onChange={e => setChosen(e.target.value)} disabled={locked}>
+                    <option value="" disabled>—</option>
+                    {authList.map(a => <option key={a.key} value={a.key}>{a.name}</option>)}
+                  </select>
+                </label>
+                {authList.find(a => a.key === chosen)?.level === 'state' && <p className="note">{t('state_note')}</p>}
+              </>
+            )}
+            {!auth && !confirmed && busy !== 'auth' && (
+              <button className="btn" type="button" onClick={findAuth}>{t('find')}</button>
+            )}
+
+            <div className="actions">
+              <button className="btn btn-quiet" type="button" onClick={() => setStep(1)}><span aria-hidden>←</span> {t('back')}</button>
+              <button className="btn btn-primary" type="button" onClick={confirmAuth} disabled={!chosen || locked}>{t('confirm')} <span aria-hidden>→</span></button>
+            </div>
+          </section>
+        )}
+
+        {/* STEP 3 */}
+        {step === 3 && (
+          <section aria-labelledby="h3" className="rise">
+            <h1 id="h3" className="page-title">{t('s3')}</h1>
+            <p className="lede">{t('s3_p')}</p>
+
+            <div className="cols pay-cols">
+              <div className="col">
+                {st === 'SUBMITTED' ? (
+                  <div className="receipt" role="status">
+                    <Check />
+                    <h2>{t('done_h')}</h2>
+                    <p className="muted">{t('done_p')}</p>
+                    <div className="small muted">{t('number')} <button type="button" className="link" onClick={() => speak(`${t('number')}: ${(app.rti_number ?? '').replace(/\//g, ' ')}`, target, api.speak)}><Speaker />{t('listen')}</button></div>
+                    <div className="rti-no" aria-label={app.rti_number ?? ''}>
+                      {(app.rti_number ?? '').split('').map((c, i) => <span key={i} style={{ ['--i' as string]: i }}>{c}</span>)}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="bill">
+                      <div><span className="muted">{t('fee')}</span><strong className="amt">₹10</strong></div>
+                      <div className="small muted">{authName}</div>
+                    </div>
+                    {st === 'PAYMENT_PENDING' && (
+                      <div className="note warn" role="status" aria-live="polite"><strong>{t('pending_h')}</strong><br />{t('pending_p')}</div>
+                    )}
+                    {st === 'PAYMENT_FAILED' && (
+                      <div className="note bad" role="alert"><strong>{t('failed_h')}</strong><br />{t('failed_p')}</div>
+                    )}
+                    <label className="field demo"><span>{t('demo')}</span>
+                      <select value={scenario} onChange={e => setScenario(e.target.value)}>
+                        {['success', 'failure', 'timeout'].map(s => <option key={s} value={s}>{t(`sc_${s}` as Key)}</option>)}
+                      </select>
+                    </label>
+                    <button className="btn btn-primary btn-big" type="button" onClick={pay}
+                      disabled={!confirmed || !draftOk || !editable || busy === 'paying'}>
+                      {busy === 'paying' ? t('paying') : t('pay')}
+                    </button>
+                  </>
+                )}
+              </div>
+
+              <div className="col">
+                <ol className="timeline" aria-label={t('history')}>
+                  {tl.map(n => (
+                    <li key={n.k} className={`tl ${n.s}`}>
+                      <span className="tl-dot">{n.s === 'done' ? <Check /> : n.s === 'failed' ? '!' : ''}</span>
+                      <span>{t(n.k as Key)}</span>
+                    </li>
+                  ))}
+                </ol>
+                {app.events && app.events.length > 0 && (
+                  <details className="tape">
+                    <summary>{t('history')}</summary>
+                    <ol className="mono small">
+                      {app.events.map((e, i) => <li key={i}><span className="muted">{e.at.slice(11, 19)}</span> {e.kind} {e.detail}</li>)}
+                    </ol>
+                  </details>
+                )}
+              </div>
+            </div>
+
+            <div className="actions">
+              <button className="btn btn-quiet" type="button" onClick={() => setStep(2)} disabled={st !== 'DRAFT' && st !== 'PAYMENT_FAILED'}><span aria-hidden>←</span> {t('back')}</button>
+              <span />
+            </div>
+          </section>
+        )}
+
+        {notice && <p role="alert" className="note bad">{notice}</p>}
+      </div>
+    </div>
+  )
+}
