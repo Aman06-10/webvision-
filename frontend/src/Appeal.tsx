@@ -4,9 +4,9 @@ import { fmt, useT, type Key } from './i18n'
 
 const iso = (d: Date) => d.toISOString().slice(0, 10)
 const ago = (n: number) => iso(new Date(Date.now() - n * 864e5))
-const KEYS = ['reply_due', 'first_appeal_opens', 'first_appeal_deadline', 'fa_decision_due', 'second_appeal_deadline']
+const KEYS = ['reply_due', 'first_appeal_opens', 'first_appeal_deadline', 'fa_decision_due', 'second_appeal_opens', 'second_appeal_deadline']
 
-export default function Appeal({ initialFiled }: { initialFiled?: string }) {
+export function AppealCheck({ initialFiled }: { initialFiled?: string }) {
   const { t, lang } = useT()
   const [filed, setFiled] = useState(initialFiled ?? ago(10))
   const [what, setWhat] = useState<'none' | 'reply' | 'transfer'>('none')
@@ -58,7 +58,7 @@ export default function Appeal({ initialFiled }: { initialFiled?: string }) {
 
   return (
     <section className="appeal rise" aria-labelledby="ap-h">
-      <h1 id="ap-h" className="page-title">{t('a_title')}</h1>
+      <h2 id="ap-h" className="sec-title">{t('a_title')}</h2>
       <p className="lede">{t('a_sub')}</p>
 
       <div className="cols">

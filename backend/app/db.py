@@ -30,6 +30,12 @@ CREATE TABLE IF NOT EXISTS payments (
 -- one live payment per application, enforced by the database
 CREATE UNIQUE INDEX IF NOT EXISTS one_active_payment
   ON payments(application_id) WHERE status IN ('INITIATED','PENDING','PAID');
+CREATE TABLE IF NOT EXISTS children (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  application_id INTEGER NOT NULL REFERENCES applications(id),
+  rti_number TEXT NOT NULL,
+  note TEXT NOT NULL DEFAULT ''
+);
 CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   application_id INTEGER NOT NULL,

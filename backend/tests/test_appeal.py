@@ -45,20 +45,24 @@ def test_physical_transfer_blocks_online_appeal():
     assert r["stage"] == "blocked_transfer" and not r["can_first_appeal"]
 
 
-def test_first_appeal_pending_then_second_appeal_opens_when_overdue():
+def test_first_appeal_pending_until_45_days_then_second_appeal_opens():
     fa = F + timedelta(days=40)
     assert appeal.assess(F, fa + timedelta(days=10), first_appeal=fa)["stage"] == "first_appeal_pending"
-    r = appeal.assess(F, fa + timedelta(days=31), first_appeal=fa)
+    assert appeal.assess(F, fa + timedelta(days=45), first_appeal=fa)["stage"] == "first_appeal_pending"  # CIC: after 45 days
+    r = appeal.assess(F, fa + timedelta(days=46), first_appeal=fa)
     assert r["stage"] == "second_appeal_open" and r["can_second_appeal"] and r["reason"] == "fa_overdue"
-    assert r["dates"]["second_appeal_deadline"] == (fa + timedelta(days=120)).isoformat()
+    assert r["dates"]["second_appeal_opens"] == (fa + timedelta(days=46)).isoformat()
+    assert r["dates"]["second_appeal_deadline"] == (fa + timedelta(days=135)).isoformat()  # 45 + 90
 
 
 def test_second_appeal_after_decision_and_deadline():
     fa, dec = F + timedelta(days=40), F + timedelta(days=60)
-    r = appeal.assess(F, dec + timedelta(days=5), first_appeal=fa, fa_decided=dec)
+    r = appeal.assess(F, dec, first_appeal=fa, fa_decided=dec)  # opens the same day the decision arrives
     assert r["can_second_appeal"] and r["reason"] == "decided"
+    assert r["dates"]["second_appeal_deadline"] == (dec + timedelta(days=90)).isoformat()
+    assert appeal.assess(F, dec + timedelta(days=90), first_appeal=fa, fa_decided=dec)["can_second_appeal"]
     r = appeal.assess(F, dec + timedelta(days=91), first_appeal=fa, fa_decided=dec)
-    assert r["stage"] == "second_appeal_closed"
+    assert r["stage"] == "second_appeal_closed" and not r["can_second_appeal"]
 
 
 def test_bad_dates_rejected():

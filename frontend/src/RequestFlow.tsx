@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { api, ApiError, type Application, type AuthorityResult, type Lang } from './api'
+import { api, appealApi, ApiError, type Application, type AuthorityResult, type Issue, type Lang, type Reminders } from './api'
 import { speak, speechSupported, startBrowserSpeech, startRecording } from './audio'
 import Stamp from './Stamp'
-import { useT, type Key } from './i18n'
+import { useT, fmt, type Key } from './i18n'
+import { IssueList, download } from './tools'
 
 const MAX = 3000
 // Real RTI Online text-box rule (rtionline.gov.in guidelines): A-Z a-z 0-9 and , . - _ ( ) / @ : & ? \ %
@@ -56,6 +57,11 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
   const [authList, setAuthList] = useState<{ key: string; name: string; name_hi?: string; level: string }[]>([])
   const [chosen, setChosen] = useState('')
   const [scenario, setScenario] = useState('success')
+  const [hints, setHints] = useState<Issue[]>([])
+  const [rem, setRem] = useState<Reminders | null>(null)
+  const [jump, setJump] = useState(0)
+  const [att, setAtt] = useState<{ ok: boolean; issues: Issue[] } | null>(null)
+  const [bpl, setBpl] = useState(false)
   const payKey = useRef(crypto.randomUUID())
   const timer = useRef<number>()
 
@@ -96,6 +102,20 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
   }, [app?.id, app?.state])
 
   useEffect(() => { if (app?.state === 'PAYMENT_FAILED') payKey.current = crypto.randomUUID() }, [app?.state])
+
+  // wording hints, English drafts only (the checks look for English phrases)
+  useEffect(() => {
+    if (target !== 'en' || revealing || draft.trim().length < 15) { setHints([]); return }
+    const h = setTimeout(() => appealApi.hints(draft).then(r => setHints(r.hints)).catch(() => {}), 900)
+    return () => clearTimeout(h)
+  }, [draft, target, revealing])
+
+  // reminders after submission; `jump` moves "today" forward for the demo
+  useEffect(() => {
+    if (!app || app.state !== 'SUBMITTED') return
+    const d = new Date(Date.now() + jump * 864e5).toISOString().slice(0, 10)
+    appealApi.reminders(app.id, jump ? d : undefined).then(setRem).catch(() => {})
+  }, [app?.id, app?.state, jump])
 
   // entering step 2 looks up the authority on its own
   useEffect(() => {
@@ -204,6 +224,14 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
   const locked = !editable
   const authObj = authList.find(a => a.key === (app.authority_key ?? chosen))
   const authName = authObj && nm(authObj)
+  const receiptText = () => [
+    'RTI REQUEST RECEIPT (redesign demo: nothing was actually filed)', '',
+    `Registration number: ${app.rti_number ?? ''}`,
+    ...(app.children ?? []).map(k => `Also forwarded as: ${k.rti_number}`),
+    `Office: ${authObj?.name ?? ''}`, `Fee: Rs 10 (simulated)`,
+    `Saved on: ${new Date().toISOString().slice(0, 10)}`, '', 'Request text:', draft, '',
+    'Keep your own copy. The official portal keeps a request for 3 years.',
+  ].join('\n')
   const stepsMeta = [1, 2, 3] as const
 
   // payment timeline state
@@ -317,6 +345,12 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
                 )}
                 {quality === 'beta' && via && !revealing && <p className="note warn" role="alert">{t('beta_warn')}</p>}
                 {via && !revealing && draftOk && quality === 'verified' && <p className="note ok" role="status">{t('draft_ready')}</p>}
+                {target === 'en' && !revealing && draft.trim().length >= 15 && (
+                  <div className="hints" aria-live="polite">
+                    <div className="small muted">{t('hint_h')}</div>
+                    {hints.length ? <IssueList issues={hints} /> : <p className="small ok-t">{t('hint_ok')}</p>}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -403,6 +437,22 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
                     <div className="rti-no" aria-label={app.rti_number ?? ''}>
                       {(app.rti_number ?? '').split('').map((c, i) => <span key={i} style={{ ['--i' as string]: i }}>{c}</span>)}
                     </div>
+                    {(app.children?.length ?? 0) > 0 && (
+                      <div className="kids">
+                        <div className="small muted">{t('fw_title')}</div>
+                        <ul className="mono small">
+                          {app.children!.map(k => <li key={k.rti_number}>{k.rti_number}</li>)}
+                        </ul>
+                        <div className="small muted">{t('fw_note')}</div>
+                      </div>
+                    )}
+                    <div className="out-actions">
+                      <button type="button" className="btn btn-sm" onClick={() => download(`rti-${app.id}-receipt.txt`, receiptText())}>{t('rc_dl')}</button>
+                      <button type="button" className="btn btn-sm" onClick={() => window.print()}>{t('rc_print')}</button>
+                    </div>
+                    <p className="small muted">{t('rc_note')}</p>
+                    <pre className="printable paper-pre print-only" lang="en">{receiptText()}</pre>
+                    <button type="button" className="link demo-link" onClick={() => appealApi.forward(app.id).then(() => api.get(app.id)).then(setApp)}>{t('fw_demo')}</button>
                   </div>
                 ) : (
                   <>
@@ -416,6 +466,21 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
                     {st === 'PAYMENT_FAILED' && (
                       <div className="note bad" role="alert"><strong>{t('failed_h')}</strong><br />{t('failed_p')}</div>
                     )}
+                    <details className="prepay">
+                      <summary>{t('pp_title')}</summary>
+                      <ul>{[1, 2, 3, 4, 5, 6, 7].map(n => <li key={n}>{t(`pp${n}` as Key)}</li>)}</ul>
+                      <div className="small muted">{t('pp_src')}</div>
+                    </details>
+                    <details className="prepay">
+                      <summary>{t('at_title')}</summary>
+                      <p className="small muted">{t('at_sub')}</p>
+                      <label className="choice"><input type="checkbox" checked={bpl} onChange={e => { setBpl(e.target.checked); setAtt(null) }} /><span>{t('at_bpl')}</span></label>
+                      <input type="file" aria-label={t('at_pick')} onChange={e => {
+                        const f = e.target.files?.[0]
+                        if (f) appealApi.attachment(f.name, f.size, bpl ? 'bpl' : 'supporting').then(setAtt).catch(() => {})
+                      }} />
+                      {att && <IssueList issues={att.issues} />}
+                    </details>
                     <label className="field demo"><span>{t('demo')}</span>
                       <select value={scenario} onChange={e => setScenario(e.target.value)}>
                         {['success', 'failure', 'timeout'].map(s => <option key={s} value={s}>{t(`sc_${s}` as Key)}</option>)}
@@ -438,6 +503,27 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
                     </li>
                   ))}
                 </ol>
+                {st === 'SUBMITTED' && (
+                  <div className="reminders">
+                    <h3>{t('rm_title')}</h3>
+                    <p className="small muted">{t('rm_sub')}</p>
+                    <ul>
+                      {rem?.items.map(i => (
+                        <li key={i.kind} className={`rm rm-${i.state}`}>
+                          <span className="rm-date mono small">{i.date}</span>
+                          <div><strong>{i.title}</strong><div className="small muted">{i.text}</div></div>
+                          <em>{i.state === 'due' ? t('rm_due') : i.state === 'past' ? fmt(t('rm_past'), { n: -i.days }) : fmt(t('rm_in'), { n: i.days })}</em>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="jump">
+                      <span className="small muted">{t('rm_jump')}</span>
+                      {[0, 26, 31, 55].map(n => (
+                        <button key={n} type="button" className={jump === n ? 'chip on' : 'chip'} onClick={() => setJump(n)}>{n === 0 ? t('rm_today') : `+${n} ${t('rm_days')}`}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {app.events && app.events.length > 0 && (
                   <details className="tape">
                     <summary>{t('history')}</summary>

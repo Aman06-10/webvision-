@@ -21,7 +21,7 @@ Status: **Built** (works in the demo), **Partly**, **Not built**, **Not ours** (
 |---|---|---|
 | Text box takes English only, 3000 characters, 14 symbols | [portal] guidelines | **Built**: Hindi/English voice drafting, rule checker, auto-fix, PDF attachment flag. The portal itself is unchanged, so Hindi text still goes in as a PDF |
 | Central vs state confusion; wrong filing returned **with no refund** | [portal] FAQ | **Built**: office finder, state warning (demo list of 22 offices) |
-| Do not know how to word a request; vague or question-style requests get refused | [report] commentary and Goa SIC case; one outlet says ~30% of applications are rejected for being in question form, **[unverified]** | **Partly**: "tidy wording", examples. No check yet that flags question-style requests |
+| Do not know how to word a request; vague or question-style requests get refused | [report] commentary and Goa SIC case; one outlet says ~30% of applications are rejected for being in question form, **[unverified]** | **Built**: hints flag question-style requests and ID numbers |
 | Low awareness in rural areas, women, SC, ST, OBC | [report] PRIA study: ~21% of applications from rural applicants, but only one state (Chhattisgarh) records it | **Partly**: voice and Hindi help; no outreach or assisted mode |
 | Indian-language access | [report] portal is Hindi and English only; parliamentary document asks for regional-language options | **Partly**: Hindi and English verified, others beta |
 
@@ -30,8 +30,8 @@ Status: **Built** (works in the demo), **Partly**, **Not built**, **Not ours** (
 | Problem | Evidence | Status |
 |---|---|---|
 | Money cut, no registration number; told to wait 24 to 48 working hours | [portal] | **Built**: Confirming state, auto-reconcile, double-payment block (mock gateway) |
-| Seven listed reasons payments fail | [portal] FAQ | **Partly**: clear failed screen; **checklist before paying not built** |
-| Attachment rules: PDF name must have no spaces; do not upload Aadhaar or PAN; BPL certificate only | [portal] | **Not built**: no attachment checker |
+| Seven listed reasons payments fail | [portal] FAQ | **Built**: clear failed screen and pre-payment checklist |
+| Attachment rules: PDF name must have no spaces; do not upload Aadhaar or PAN; BPL certificate only | [portal] | **Built (name only)**: checks file name and identity-document names; size limit not stated in the guidelines |
 | Portal technical trouble and slow responses | [report] a notice on the portal's registration page, seen via search; **[unverified]** date | **Not ours** |
 
 ### After filing (the 30-day black box)
@@ -40,25 +40,25 @@ Status: **Built** (works in the demo), **Partly**, **Not built**, **Not ours** (
 |---|---|---|
 | Status needs registration number, email, CAPTCHA and an OTP; OTP email can be delayed | [portal] | **Not built** (no resend cooldown or delivery hint) |
 | Extra-fee demands and "supporting documents required" alerts live inside View Status | [portal] FAQ | **Not built** |
-| Several registration numbers for one request | [portal] FAQ | **Not built** (grouped view) |
-| No reminders as deadlines approach | inferred | **Partly**: appeal checker shows dates; no notifications |
-| Cases kept only 3 years | [portal] FAQ | **Not built** (receipt and copy download) |
+| Several registration numbers for one request | [portal] FAQ | **Partly**: grouped view built; forwarding is simulated |
+| No reminders as deadlines approach | inferred | **Partly**: reminders with computed dates; in-app only, no email or SMS |
+| Cases kept only 3 years | [portal] FAQ | **Built**: receipt download and print |
 
 ### Reply and first appeal
 
 | Problem | Evidence | Status |
 |---|---|---|
-| Exemptions used heavily; Section 8(1)(j) (personal information) most invoked | [report] CIC annual reports 2019-20; CHRI study of 10 commissions found about 10% of queries rejected, with large variation | **Not built** (explain the clause cited, judge if it fits) |
+| Exemptions used heavily; Section 8(1)(j) (personal information) most invoked | [report] CIC annual reports 2019-20; CHRI study of 10 commissions found about 10% of queries rejected, with large variation | **Built (v1)**: explains the clause cited and usual grounds; does not judge lawfulness |
 | Rejections under an unexplained "others" category | [report] CIC data for 2015-16: 43% of rejections; old data | **Not ours**, but a reply reviewer could flag it |
 | First appeal will not open and the reason is buried | [portal] FAQ | **Built**: appeal checker with reasons and dates |
 | Manual applications cannot be appealed online unless a CPIO lodges them | [portal] FAQ | **Partly**: transfer case explained |
-| Writing a first appeal | inferred | **Not built** (drafting help) |
+| Writing a first appeal | inferred | **Built**: first-appeal draft from standard grounds |
 
 ### Second appeal and the commissions
 
 | Problem | Evidence | Status |
 |---|---|---|
-| **Cases returned without orders for format defects.** CIC returned 14,603 cases from July 2025 to June 2026 against 31,179 registered; nine commissions returned 37,701. Commissions return appeals that do not follow prescribed formats; one campaigner cites missing page numbers. About 95% of CIC returns were reportedly never re-filed | [report] PTI story on the SNS report, 13 Oct 2026; the 95% is from earlier data cited there. Returned and registered may not count the same things | **Not built, and the strongest software opportunity**: a second-appeal form checker and draft generator |
+| **Cases returned without orders for format defects.** CIC returned 14,603 cases from July 2025 to June 2026 against 31,179 registered; nine commissions returned 37,701. Commissions return appeals that do not follow prescribed formats; one campaigner cites missing page numbers. About 95% of CIC returns were reportedly never re-filed | [report] PTI story on the SNS report, 13 Oct 2026; the 95% is from earlier data cited there. Returned and registered may not count the same things | **Built (v1)**: second-appeal drafter and checker on the CIC's published format and checklist. Unproven that it prevents returns |
 | Backlog: about 3.85 lakh appeals and complaints pending in 28 commissions on 30 June 2026; CIC pendency reported up by 9,378 between 1 Jan and 12 Oct 2026 | [report] SNS via PTI; [claim] the 9,378 is one retired officer's statement | **Not ours** |
 | Very long waits: 14 commissions may take a year or more; the report estimates 19 years 8 months for Tripura | [report] SNS via PTI | **Not ours**, but the app could show expected wait up front |
 | Penalties rarely imposed on PIOs | [report] SNS editions give figures between about 4% and 9% of eligible cases; editions differ, check the year before quoting | **Not ours** |
@@ -72,7 +72,11 @@ Status: **Built** (works in the demo), **Partly**, **Not built**, **Not ours** (
 | The FAQ tells users to ignore a browser certificate error | [portal] FAQ text as read; may be outdated | **Not ours**; raise at the source |
 | Third-party sites give confident payment-refund advice that cannot be verified | [unverified] | Use official text only |
 
-## 3. What to build next, ranked
+## 3. Second-appeal rules read from the CIC (new)
+
+From cic.gov.in Second Appeal Guidelines and FAQ, read 30 Oct 2026: mandatory are a signed appeal, a copy of the RTI application and a copy of the first appeal, all related, legible and in Hindi or English; if available, the reply, the first appeal order, other relied documents and an index; all signed or self-attested; one copy with proof of service on the CPIO and FAA; no fee; a second appeal without a first appeal is liable to be returned; a late appeal needs a formal condonation request or is liable to be rejected. Timing: file after the first appeal is decided or 45 days after it, within 90 days. Help desk 011-26183053, fdesk-cic[at]gov[dot]in. The format is Rule 8 of the RTI Rules, 2012 (eleven items). Third-party sites disagree on upload limits and extra forms; none of those are used here.
+
+## 4. What to build next, ranked
 
 1. **Appeal drafter and format checker** (first and second appeal). Evidence is the 14,603 returned CIC cases. Build: form with required fields and page-number checks, plain-language grounds, PDF-ready output. Risk: formats differ by commission; verify against the CIC's current prescribed format before claiming compliance.
 2. **Reply reviewer.** Paste or upload the reply; the app lists the Section 8 clause cited, what it normally covers, and the usual grounds for appeal. Must stay explanatory, not legal advice.
@@ -81,7 +85,7 @@ Status: **Built** (works in the demo), **Partly**, **Not built**, **Not ours** (
 5. **Assisted and low-bandwidth mode** for rural users (voice first, operator-assisted filing).
 6. **Grouped multi-CPIO view and "documents required" inbox.**
 
-## 4. What not to claim in a pitch
+## 5. What not to claim in a pitch
 
 - That the app files real RTIs, or that payment is real.
 - That all 22 languages work. Hindi and English are tested; others are beta.

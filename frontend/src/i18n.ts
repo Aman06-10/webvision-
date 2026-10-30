@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react'
 import { EN2, HI2 } from './strings2'
+import { EN3, HI3 } from './strings3'
 
 export type Lang = 'en' | 'hi'
 
@@ -104,7 +105,7 @@ const BASE = {
   },
 } as const
 
-const S = { en: { ...BASE.en, ...EN2 }, hi: { ...BASE.hi, ...HI2 } }
+const S = { en: { ...BASE.en, ...EN2, ...EN3 }, hi: { ...BASE.hi, ...HI2, ...HI3 } }
 
 export type Key = keyof typeof S.en
 export const strings = S

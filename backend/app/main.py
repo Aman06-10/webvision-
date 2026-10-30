@@ -8,7 +8,7 @@ from fastapi import FastAPI, File, Form, Header, HTTPException, Request, Respons
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 
-from . import appeal, authority, db, drafts, gateway, llm, nv, payments, rag, voice
+from . import appeal, appeal_docs, attachments, authority, reminders, reply_review, db, drafts, gateway, llm, nv, payments, rag, voice
 
 
 async def _reconciler():
@@ -114,6 +114,8 @@ def get_application(app_id: int):
         a = dict(_app_or_404(c, app_id))
         a["events"] = [dict(r) for r in c.execute(
             "SELECT kind, detail, at FROM events WHERE application_id=? ORDER BY id", (app_id,))]
+        a["children"] = [dict(r) for r in c.execute(
+            "SELECT rti_number, note FROM children WHERE application_id=? ORDER BY id", (app_id,))]
         a["payments"] = [dict(r) for r in c.execute(
             "SELECT status, amount, created_at FROM payments WHERE application_id=? ORDER BY id",
             (app_id,))]
@@ -252,3 +254,79 @@ def appeal_check(body: AppealIn):
                              body.fa_decided, body.transferred_physically)
     except ValueError as e:
         raise HTTPException(400, str(e))
+
+
+# ---- appeal drafting and checks -----------------------------------------
+class Free(BaseModel):
+    model_config = {"extra": "allow"}
+    today: dt.date | None = None
+
+
+@app.get("/appeal/options")
+def appeal_options():
+    return {"grounds": appeal_docs.GROUNDS, "relief": appeal_docs.RELIEF,
+            "docs": [{"code": c, "label": l, "mandatory": m} for c, l, m in appeal_docs.DOCS]}
+
+
+@app.post("/appeal/first")
+def appeal_first(body: Free):
+    data = body.model_dump(exclude={"today"})
+    return appeal_docs.first_appeal(data, body.today)
+
+
+@app.post("/appeal/second")
+def appeal_second(body: Free):
+    data = body.model_dump(exclude={"today"})
+    return appeal_docs.second_appeal(data, body.today)
+
+
+class ReplyIn(BaseModel):
+    text: str
+
+
+@app.post("/reply/review")
+def reply_review_endpoint(body: ReplyIn):
+    return reply_review.review(body.text[:6000])
+
+
+class AttachIn(BaseModel):
+    filename: str
+    size_bytes: int | None = None
+    kind: Literal["supporting", "bpl"] = "supporting"
+
+
+@app.post("/attachment/check")
+def attachment_check(body: AttachIn):
+    return attachments.check(body.filename, body.size_bytes, body.kind)
+
+
+@app.post("/draft/analyze")
+def draft_analyze(body: DraftIn):
+    return {"hints": drafts.analyze_request(body.draft)}
+
+
+@app.get("/applications/{app_id}/reminders")
+def application_reminders(app_id: int, today: dt.date | None = None):
+    with db.tx() as c:
+        a = _app_or_404(c, app_id)
+        ev = c.execute("SELECT at FROM events WHERE application_id=? AND kind='SUBMITTED'", (app_id,)).fetchone()
+    if not ev:
+        return {"submitted": None, "channel": "in-app (email and SMS are not connected in this demo)", "items": []}
+    submitted = dt.date.fromisoformat(ev["at"][:10])
+    return {"submitted": submitted.isoformat(), "channel": "in-app (email and SMS are not connected in this demo)",
+            "items": reminders.for_request(submitted, today or dt.date.today())}
+
+
+@app.post("/applications/{app_id}/demo-forward")
+def demo_forward(app_id: int):
+    """Demo only: pretend the request was forwarded to a second office, which gets its own number."""
+    with db.tx() as c:
+        a = _app_or_404(c, app_id)
+        if not a["rti_number"]:
+            raise HTTPException(409, "Submit the request first")
+        n = c.execute("SELECT COUNT(*) FROM children WHERE application_id=?", (app_id,)).fetchone()[0]
+        number = f"{a['rti_number']}/{chr(66 + n)}"
+        c.execute("INSERT INTO children(application_id, rti_number, note) VALUES (?,?,?)",
+                  (app_id, number, "Forwarded to another office (demo)"))
+        db.log_event(c, app_id, "FORWARDED_DEMO", number)
+    return {"rti_number": number}

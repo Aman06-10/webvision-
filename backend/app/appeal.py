@@ -1,13 +1,16 @@
 """Appeal eligibility: why the appeal option is open or closed, and the dates that matter.
 
-Rules used (RTI Act, 2005, as the author understands it, plus the rtionline.gov.in FAQ):
+Rules used (RTI Act, 2005 as the author understands it; rtionline.gov.in FAQ; and the Central Information
+Commission's "Second Appeal Guidelines" and FAQ on cic.gov.in, read 2026-10-30):
 - The authority should reply within 30 days of the application (Section 7(1)).
 - First appeal (Section 19(1)): within 30 days of the reply, or of the day the 30-day reply period
   ended if there was no reply. No fee. On the portal it stays closed until the 30 days have passed
   if there is no reply, and for applications physically transferred to an authority not on the portal.
 - The first appeal should be decided within 30 days (up to 45 with reasons) (Section 19(6)).
-- Second appeal to the Information Commission within 90 days of the first appeal decision, or of
-  the date it should have been decided (Section 19(3)).
+- Second appeal to the Information Commission (CIC guidelines): it can be filed immediately after the
+  first appellate authority decides, or once 45 days have passed since the first appeal with no decision.
+  It must be filed within 90 days of receiving the decision, or within 90 days after those 45 days if
+  there was no decision. A later appeal needs a formal request for condonation of delay.
 Late appeals can be admitted for "sufficient cause", which this module does not judge.
 We count the earliest reasonable dates, so a result never promises more time than the user has.
 Not legal advice.
@@ -52,19 +55,20 @@ def assess(filed: date, today: date, replied: date | None = None, first_appeal: 
 
     if first_appeal:
         fa_due = _d(first_appeal, FA_DECISION_DAYS)
-        dates.update(first_appeal_filed=first_appeal, fa_decision_due=fa_due,
-                     fa_decision_latest=_d(first_appeal, FA_DECISION_MAX_DAYS))
-        base = fa_decided or fa_due
-        s_deadline = _d(base, SECOND_APPEAL_DAYS)
-        dates["second_appeal_deadline"] = s_deadline
-        if fa_decided or today > fa_due:
-            if today <= s_deadline:
-                out.update(stage="second_appeal_open", can_second_appeal=True,
-                           reason="decided" if fa_decided else "fa_overdue")
-            else:
-                out.update(stage="second_appeal_closed", reason="second_deadline_passed")
+        fa_latest = _d(first_appeal, FA_DECISION_MAX_DAYS)
+        dates.update(first_appeal_filed=first_appeal, fa_decision_due=fa_due, fa_decision_latest=fa_latest)
+        if fa_decided:
+            s_open, s_deadline = fa_decided, _d(fa_decided, SECOND_APPEAL_DAYS)
         else:
+            s_open, s_deadline = _d(fa_latest, 1), _d(fa_latest, SECOND_APPEAL_DAYS)
+        dates.update(second_appeal_opens=s_open, second_appeal_deadline=s_deadline)
+        if today < s_open:
             out.update(stage="first_appeal_pending", reason="fa_in_time")
+        elif today <= s_deadline:
+            out.update(stage="second_appeal_open", can_second_appeal=True,
+                       reason="decided" if fa_decided else "fa_overdue")
+        else:
+            out.update(stage="second_appeal_closed", reason="second_deadline_passed")
     elif transferred_physically:
         out.update(stage="blocked_transfer", reason="transferred")
     elif not replied and today <= reply_due:
@@ -83,5 +87,6 @@ def assess(filed: date, today: date, replied: date | None = None, first_appeal: 
     }
     if "second_appeal_deadline" in dates:
         out["days_left"]["second_appeal_deadline"] = (dates["second_appeal_deadline"] - today).days
+        out["days_left"]["second_appeal_opens"] = (dates["second_appeal_opens"] - today).days
         out["days_left"]["fa_decision_due"] = (dates["fa_decision_due"] - today).days
     return out

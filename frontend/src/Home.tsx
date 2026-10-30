@@ -55,6 +55,19 @@ export default function Home({ go }: Props) {
         </ul>
       </section>
 
+      <section className="numbers" aria-labelledby="n-h">
+        <h2 id="n-h">{t('n_title')}</h2>
+        <div className="num-grid">
+          {([1, 2, 3] as const).map(n => (
+            <figure key={n} className="stat">
+              <div className="stat-n">{t(`n${n}` as Key)}</div>
+              <figcaption>{t(`n${n}t` as Key)}<span className="small muted">{t(`n${n}s` as Key)}</span></figcaption>
+            </figure>
+          ))}
+        </div>
+        <p className="small muted">{t('n_src')}</p>
+      </section>
+
       <section className="problems" aria-labelledby="p-h">
         <h2 id="p-h">{t('p_title')}</h2>
         <div className="pgrid" role="table">

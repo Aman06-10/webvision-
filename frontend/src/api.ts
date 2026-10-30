@@ -26,6 +26,7 @@ export type Application = {
   id: number; email: string; draft: string; state: string; rti_number: string | null
   authority_key: string | null; authority_confirmed: number; created_at: string
   events?: AppEvent[]
+  children?: { rti_number: string; note: string }[]
 }
 export type Translation = { original: string; translated: string; engine: string; quality?: 'verified' | 'beta' }
 export type Lang = { name: string; quality: 'verified' | 'beta' }
@@ -69,3 +70,24 @@ export type AppealInput = {
   filed: string; replied?: string; first_appeal?: string; fa_decided?: string; transferred_physically?: boolean
 }
 export const checkAppeal = (b: AppealInput) => call<AppealResult>('/appeal/check', json('POST', b))
+
+export type Issue = { code: string; level: 'error' | 'warning' | 'info' | 'tip' | 'ok'; message: string }
+export type DraftResult = { ready: boolean; issues: Issue[]; text: string; assessment: AppealResult | null }
+export type AppealOptions = { grounds: Record<string, string>; relief: Record<string, string>; docs: { code: string; label: string; mandatory: boolean }[] }
+export type ReplyReview = {
+  clauses: { ref: string; title: string; summary: string; grounds: string[] }[]
+  other_sections: { ref: string; title: string; summary: string }[]
+  flags: { code: string; message: string }[]; suggested_grounds: string[]; empty: boolean
+}
+export type Reminders = { submitted: string | null; channel: string; items: { kind: string; date: string; title: string; text: string; state: 'upcoming' | 'due' | 'past'; days: number }[] }
+export const appealApi = {
+  options: () => call<AppealOptions>('/appeal/options'),
+  first: (b: Record<string, unknown>) => call<DraftResult>('/appeal/first', json('POST', b)),
+  second: (b: Record<string, unknown>) => call<DraftResult>('/appeal/second', json('POST', b)),
+  reviewReply: (text: string) => call<ReplyReview>('/reply/review', json('POST', { text })),
+  attachment: (filename: string, size_bytes: number, kind: 'supporting' | 'bpl') =>
+    call<{ ok: boolean; issues: Issue[] }>('/attachment/check', json('POST', { filename, size_bytes, kind })),
+  hints: (draft: string) => call<{ hints: Issue[] }>('/draft/analyze', json('POST', { draft })),
+  reminders: (id: number, today?: string) => call<Reminders>(`/applications/${id}/reminders${today ? `?today=${today}` : ''}`),
+  forward: (id: number) => call<{ rti_number: string }>(`/applications/${id}/demo-forward`, { method: 'POST' }),
+}

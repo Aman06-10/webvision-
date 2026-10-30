@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, type Application } from './api'
-import Appeal from './Appeal'
+import AppealHub from './AppealHub'
 import Dashboard from './Dashboard'
 import Home from './Home'
 import Help from './Help'
@@ -15,9 +15,11 @@ export default function App() {
   const [view, setView] = useState<'home' | 'new' | 'mine' | 'help' | 'appeal'>('home')
   const [email, setEmail] = useState(read('email') ?? '')
   const [resume, setResume] = useState<Application | null>(null)
+  const [menu, setMenu] = useState(false)
   const [health, setHealth] = useState<{ llm: boolean; stt: boolean; tts: boolean; bhashini: boolean } | null>(null)
 
   const t = (k: Key) => strings[lang][k]
+  const go = (v: typeof view) => { setView(v); setMenu(false); window.scrollTo(0, 0) }
   useEffect(() => { document.documentElement.lang = lang; write('lang', lang) }, [lang])
   useEffect(() => { api.health().then(setHealth).catch(() => setHealth(null)) }, [])
   useEffect(() => { if (email) write('email', email) }, [email])
@@ -27,13 +29,14 @@ export default function App() {
       <a className="skip" href="#main">Skip to content</a>
       <header className="top">
         <div className="wrap top-row">
-          <button className="brand" onClick={() => setView('home')}><span className="brand-mark" aria-hidden>RTI</span>{t('brand')}</button>
-          <nav aria-label="Main">
-            <button className={view === 'home' ? 'tab on' : 'tab'} onClick={() => setView('home')}>{t('nav_home')}</button>
-            <button className={view === 'new' ? 'tab on' : 'tab'} onClick={() => { setResume(null); setView('new') }}>{t('nav_new')}</button>
-            <button className={view === 'mine' ? 'tab on' : 'tab'} onClick={() => setView('mine')} disabled={!email}>{t('nav_mine')}</button>
-            <button className={view === 'appeal' ? 'tab on' : 'tab'} onClick={() => setView('appeal')}>{t('nav_appeal')}</button>
-            <button className={view === 'help' ? 'tab on' : 'tab'} onClick={() => setView('help')}>{t('nav_help')}</button>
+          <button className="brand" onClick={() => go('home')}><span className="brand-mark" aria-hidden>RTI</span>{t('brand')}</button>
+          <button className="menu-btn" aria-expanded={menu} aria-controls="main-nav" onClick={() => setMenu(m => !m)}>{t('menu')}</button>
+          <nav aria-label="Main" id="main-nav" className={menu ? 'open' : ''}>
+            <button className={view === 'home' ? 'tab on' : 'tab'} onClick={() => go('home')}>{t('nav_home')}</button>
+            <button className={view === 'new' ? 'tab on' : 'tab'} onClick={() => { setResume(null); go('new') }}>{t('nav_new')}</button>
+            <button className={view === 'mine' ? 'tab on' : 'tab'} onClick={() => go('mine')} disabled={!email}>{t('nav_mine')}</button>
+            <button className={view === 'appeal' ? 'tab on' : 'tab'} onClick={() => go('appeal')}>{t('nav_appeal')}</button>
+            <button className={view === 'help' ? 'tab on' : 'tab'} onClick={() => go('help')}>{t('nav_help')}</button>
           </nav>
           <div className="langsw" role="group" aria-label="Interface language">
             <button aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
@@ -42,12 +45,12 @@ export default function App() {
         </div>
       </header>
       <main id="main" className="wrap">
-        {view === 'home' ? <Home go={v => { setResume(null); setView(v) }} />
+        {view === 'home' ? <Home go={v => { setResume(null); go(v) }} />
           : view === 'help' ? <Help />
-          : view === 'appeal' ? <Appeal />
+          : view === 'appeal' ? <AppealHub />
           : view === 'new'
             ? <RequestFlow key={resume?.id ?? 'new'} email={email} setEmail={setEmail} resume={resume} />
-            : <Dashboard email={email} onOpen={a => { setResume(a); setView('new') }} />}
+            : <Dashboard email={email} onOpen={a => { setResume(a); go('new') }} onNew={() => { setResume(null); go('new') }} onAppeal={() => go('appeal')} />}
       </main>
       <footer className="wrap foot">
         <p>{t('concept')}</p>

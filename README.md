@@ -15,6 +15,12 @@ A redesign concept for the online RTI (Right to Information) filing experience. 
 | 3000-character limit and a narrow character set | Live counter, disallowed characters listed with one-tap auto-fix (the real portal set), Hindi or over-long drafts flagged as PDF attachments, autosave |
 | Hard to understand fees, deadlines, appeals | Help assistant that answers only from a small RTI knowledge base and cites its sources |
 | The first appeal will not open and nobody says why | Appeal checker: open or closed, the reason, and the dates (reply due, appeal window, second appeal) |
+| Second appeals are returned for format defects | Second-appeal drafter built on the CIC's own format (RTI Rules 2012, Rule 8) with a checklist of what the Commission calls mandatory, late-appeal and condonation checks |
+| A refusal that cites a section nobody explains | "Understand a reply": which section is cited, what it covers, usual grounds, and whether reasons and appeal rights were stated; one tap carries the grounds into a first-appeal draft |
+| Requests worded as questions get refused | Hints while writing: ask for records, no Aadhaar or PAN numbers |
+| Payments fail for avoidable reasons | "Before you pay" checklist from the portal's own list of failure reasons, plus an attachment-name checker (no spaces, no identity documents) |
+| No reminders as deadlines approach | Reminders panel with the dates already worked out (shown in-app only; email and SMS are not connected) |
+| Records kept only 3 years | Receipt download and print-to-PDF |
 | Hard for people who read slowly or not at all | "Listen" button reads the draft and the RTI number aloud (Hindi and English) |
 
 Interface is available in English and Hindi. Animations respect `prefers-reduced-motion`.
@@ -32,6 +38,10 @@ FastAPI backend  (all API keys live here, never in the browser)
   |- /authority/find     keyword rules (English, Hindi, Hinglish) -> embeddings -> chat model among the closest candidates -> "unknown"
   |- /rag/ask            embeddings search -> chat model answers from the knowledge base
   |- /appeal/check       appeal eligibility and dates (pure rules, no AI)
+  |- /appeal/first, /appeal/second   draft and check appeals (templates and rules, no AI)
+  |- /reply/review      explain the section a reply cites (rules)
+  |- /draft/analyze, /attachment/check   wording hints, attachment name check
+  |- /applications/{id}/reminders   deadline reminders
   |- /applications/*     drafts, authority confirmation, payment
   |- /payments/*         state machine, mock gateway, webhook, reconciliation
   |- /usage              calls per NVIDIA service vs local throttle
@@ -123,7 +133,7 @@ Known limits, stated plainly:
 - The knowledge base in `backend/app/kb.py` is general guidance from the RTI Act, 2005 and the central RTI Rules, 2012 as the author understands them. State rules differ. It is not legal advice; verify before relying on any figure.
 - **Authority detection accuracy** (22 demo authorities, live APIs): 26 of 26 on the set the keyword lists were tuned on (so optimistic), and 17 of 18 on a held-out set of paraphrases written afterwards with no keywords in mind. The one miss (road tarring in a colony, chose PWD over municipal) came back with 0.6 confidence and municipal as an alternative. Queries are in `backend/tests/queries.py`; the held-out set is small, so treat this as indicative. Vague text such as "help" returns unknown and asks for more detail.
 - The authority table is demo data; replace it with the real directory. The draft character rule and the facts on the landing page were read from rtionline.gov.in (Guidelines and FAQ) on 2026-10-30 and may change.
-- Appeal dates use the earliest reasonable reading of the RTI Act (30-day reply, 30-day first appeal window, 90-day second appeal) and are covered by unit tests. A late appeal can still be admitted for good reason; the checker does not judge that. Not legal advice.
+- Appeal dates follow the RTI Act and, for second appeals, the Central Information Commission's own guidelines (30-day reply; 30-day first appeal window; second appeal after the first appeal is decided or 45 days have passed, within 90 days). They are covered by unit tests. The second-appeal format and checklist come from cic.gov.in pages read on 2026-10-30; the Commission can still return an appeal, and whether the checker reduces returns is a hypothesis, not a measured result. The first-appeal draft is a convenience: the portal has no prescribed first-appeal format. A late appeal can still be admitted for good reason; the checker does not judge that. Not legal advice.
 - Claims about the current portal's wrong-portal warning, payment FAQ, 3000-character limit, OTP delay, CAPTCHA text and blinking GIFs come from the portal's text. Mobile behaviour and CAPTCHA malfunction were **not** tested and are not claimed.
 
 ### NVIDIA usage limits
@@ -134,13 +144,13 @@ Hosted models on build.nvidia.com are a trial service. Reports commonly cite abo
 
 Taken from the 26-question FAQ on rtionline.gov.in, as candidates for the next redesign steps (none are built yet unless marked):
 
-- Payment fails for seven listed reasons (card e-commerce flag off, session timeout, wrong OTP, wrong card details, low balance, switching payment mode, UPI request not approved). A pre-payment checklist and a plain retry screen would prevent most of them. *Retry screen: built; checklist: not built.*
+- Payment fails for seven listed reasons (card e-commerce flag off, session timeout, wrong OTP, wrong card details, low balance, switching payment mode, UPI request not approved). *Built: retry screen and a pre-payment checklist.*
 - Reconciliation takes 24 to 48 working hours and users are told to email a helpline. A status page with a "what to do now" step would replace the email. *Partly built (Confirming state).*
-- One request can produce several registration numbers when it is forwarded to several CPIOs; a grouped view would explain it.
+- One request can produce several registration numbers when it is forwarded to several CPIOs. *Grouped view built, but only a demo button simulates the forwarding.*
 - A "supporting documents required" alert is only found by opening View Status; surface it on the dashboard.
 - Manually filed applications cannot get an online first appeal unless the CPIO lodges them; explain this up front. *Explained in the appeal checker's transfer case.*
 - The status OTP goes by email and can be delayed; add a resend cooldown and delivery hint.
-- Requests are kept for 3 years only; offer a downloadable receipt and request copy.
+- Requests are kept for 3 years only. *Receipt download and print built.*
 - The FAQ advises users to ignore a browser certificate error. If that is still current, it trains users to bypass security warnings and should be fixed at the source.
 - The text box accepts English only; the real fix is an official way to submit text in Indian languages.
 
