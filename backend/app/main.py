@@ -159,7 +159,8 @@ async def find_authority(body: FindIn):
 
 @app.get("/authority/list")
 def list_authorities():
-    return [{"key": a.key, "name": a.name, "level": a.level} for a in authority.AUTHORITIES]
+    return [{"key": a.key, "name": a.name, "name_hi": authority.NAME_HI[a.key], "level": a.level}
+            for a in authority.AUTHORITIES]
 
 
 class ConfirmIn(BaseModel):

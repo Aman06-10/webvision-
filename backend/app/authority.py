@@ -103,6 +103,22 @@ AUTHORITIES = [
 ]
 BY_KEY = {a.key: a for a in AUTHORITIES}
 
+NAME_HI = {
+    "railways": "रेल मंत्रालय", "income_tax": "आयकर विभाग (सीबीडीटी)",
+    "passport": "पासपोर्ट सेवा / विदेश मंत्रालय", "epfo": "ईपीएफओ / श्रम मंत्रालय",
+    "uidai": "यूआईडीएआई (आधार)", "post": "भारतीय डाक / डाक विभाग",
+    "telecom": "बीएसएनएल / दूरसंचार विभाग", "psu_bank": "सार्वजनिक क्षेत्र का बैंक (वित्तीय सेवाएँ विभाग)",
+    "cbse": "सीबीएसई / यूजीसी / एनटीए (केंद्रीय शिक्षा निकाय)", "police": "राज्य पुलिस विभाग",
+    "municipal": "नगर निगम / शहरी स्थानीय निकाय", "electricity": "राज्य बिजली बोर्ड / डिस्कॉम",
+    "water": "जल आपूर्ति विभाग / जल बोर्ड", "land": "राज्य राजस्व / भू-अभिलेख विभाग",
+    "rto": "राज्य परिवहन विभाग / आरटीओ", "health": "राज्य स्वास्थ्य विभाग / सरकारी अस्पताल",
+    "food": "खाद्य एवं नागरिक आपूर्ति विभाग (राशन)", "panchayat": "ग्राम पंचायत / ग्रामीण विकास विभाग",
+    "social": "समाज कल्याण विभाग (पेंशन, प्रमाणपत्र)", "state_school": "राज्य शिक्षा विभाग",
+    "pwd": "लोक निर्माण विभाग (राजमार्ग, पुल)",
+}
+PORTAL_HI = {CENTRAL: "केंद्रीय आरटीआई पोर्टल (rtionline.gov.in)", STATE: "राज्य आरटीआई पोर्टल (हर राज्य का अलग)"}
+assert set(NAME_HI) == set(BY_KEY)
+
 # Tuned on tests/queries.py. Embedding similarity of the best authority:
 # Measured on tests/queries.py HELD_OUT: right answers scored 0.20-0.40 with a gap of >= 0.05
 # to the runner-up; vague or off-topic text scored 0.08-0.17.
@@ -134,13 +150,14 @@ def _rank_rules(text: str) -> list[tuple[float, Authority, list[str]]]:
 
 
 def _result(a: Authority, confidence: float, reason: str, source: str, candidates: list[dict]) -> dict:
-    return {"key": a.key, "authority": a.name, "level": a.level, "portal": a.portal,
+    return {"key": a.key, "authority": a.name, "authority_hi": NAME_HI[a.key], "level": a.level,
+            "portal": a.portal, "portal_hi": PORTAL_HI[a.portal],
             "confidence": round(confidence, 2), "reason": reason, "source": source,
             "candidates": candidates}
 
 
 def _cand(a: Authority, score: float) -> dict:
-    return {"key": a.key, "name": a.name, "score": round(score, 2)}
+    return {"key": a.key, "name": a.name, "name_hi": NAME_HI[a.key], "score": round(score, 2)}
 
 
 def by_rules(text: str) -> dict | None:

@@ -28,7 +28,7 @@ function Check() {
 }
 
 export default function RequestFlow({ email, setEmail, resume }: Props) {
-  const { t } = useT()
+  const { t, lang } = useT()
   const [app, setApp] = useState<Application | null>(resume)
   const [emailDraft, setEmailDraft] = useState(email)
   const [langs, setLangs] = useState<Record<string, Lang>>({})
@@ -49,7 +49,7 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
 
   const [rec, setRec] = useState<null | { stop: () => unknown }>(null)
   const [auth, setAuth] = useState<AuthorityResult | null>(null)
-  const [authList, setAuthList] = useState<{ key: string; name: string; level: string }[]>([])
+  const [authList, setAuthList] = useState<{ key: string; name: string; name_hi?: string; level: string }[]>([])
   const [chosen, setChosen] = useState('')
   const [scenario, setScenario] = useState('success')
   const payKey = useRef(crypto.randomUUID())
@@ -193,9 +193,12 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
     )
   }
 
+  const hi = lang === 'hi'
+  const nm = (o: { name: string; name_hi?: string }) => (hi && o.name_hi) || o.name
   const confLabel = (c: number) => (c >= 0.7 ? t('high') : c >= 0.45 ? t('medium') : t('low'))
   const locked = !editable
-  const authName = authList.find(a => a.key === (app.authority_key ?? chosen))?.name
+  const authObj = authList.find(a => a.key === (app.authority_key ?? chosen))
+  const authName = authObj && nm(authObj)
   const stepsMeta = [1, 2, 3] as const
 
   // payment timeline state
@@ -329,13 +332,13 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
             {auth && busy !== 'auth' && auth.key !== 'unknown' && (
               <div className="result rise" aria-live="polite">
                 <div className="small muted">{t('likely')}</div>
-                <div className="result-name">{auth.authority}</div>
-                {auth.portal && <div>{t('portal')}: <strong>{auth.portal}</strong></div>}
+                <div className="result-name">{hi && auth.authority_hi ? auth.authority_hi : auth.authority}</div>
+                {auth.portal && <div>{t('portal')}: <strong>{hi && auth.portal_hi ? auth.portal_hi : auth.portal}</strong></div>}
                 <div className="meter" aria-label={`${t('conf')}: ${confLabel(auth.confidence)}`}>
                   <div className="meter-bar"><i style={{ ['--w' as string]: `${Math.max(6, auth.confidence * 100)}%` }} /></div>
                   <span className="small">{t('conf')}: <strong>{confLabel(auth.confidence)}</strong> · {auth.source}</span>
                 </div>
-                <div className="muted">{auth.reason}</div>
+                <div className="muted">{hi ? auth.reason.replace('Matched words:', 'मिले शब्द:') : auth.reason}</div>
               </div>
             )}
             {auth && busy !== 'auth' && (auth.key === 'unknown' || auth.confidence < 0.7) && (
@@ -349,7 +352,7 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
                 <div className="small muted">{t('other_offices')}</div>
                 <div className="chips">
                   {auth.candidates.filter(c => c.key !== auth.key).map(c => (
-                    <button key={c.key} type="button" className={chosen === c.key ? 'chip on' : 'chip'} onClick={() => setChosen(c.key)}>{c.name}</button>
+                    <button key={c.key} type="button" className={chosen === c.key ? 'chip on' : 'chip'} onClick={() => setChosen(c.key)}>{nm(c)}</button>
                   ))}
                 </div>
               </div>
@@ -360,7 +363,7 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
                 <label className="field narrow"><span>{t('change')}</span>
                   <select value={chosen} onChange={e => setChosen(e.target.value)} disabled={locked}>
                     <option value="" disabled>—</option>
-                    {authList.map(a => <option key={a.key} value={a.key}>{a.name}</option>)}
+                    {authList.map(a => <option key={a.key} value={a.key}>{nm(a)}</option>)}
                   </select>
                 </label>
                 {authList.find(a => a.key === chosen)?.level === 'state' && <p className="note">{t('state_note')}</p>}

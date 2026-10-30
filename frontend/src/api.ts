@@ -20,7 +20,7 @@ const json = (method: string, body: unknown, headers: Record<string, string> = {
 })
 
 export type Validation = { length: number; max: number; too_long: boolean; invalid_chars: string[]; invalid_positions: number[]; ok: boolean }
-export type AuthorityResult = { key: string; authority: string; level: string; portal: string; confidence: number; reason: string; source: string; candidates: { key: string; name: string; score: number }[] }
+export type AuthorityResult = { key: string; authority: string; level: string; portal: string; confidence: number; reason: string; source: string; authority_hi?: string; portal_hi?: string; candidates: { key: string; name: string; name_hi?: string; score: number }[] }
 export type AppEvent = { kind: string; detail: string; at: string }
 export type Application = {
   id: number; email: string; draft: string; state: string; rti_number: string | null
@@ -54,7 +54,7 @@ export const api = {
     return call<Translation>('/voice/transcribe', { method: 'POST', body: f })
   },
   findAuthority: (text: string) => call<AuthorityResult>('/authority/find', json('POST', { text })),
-  authorities: () => call<{ key: string; name: string; level: string }[]>('/authority/list'),
+  authorities: () => call<{ key: string; name: string; name_hi?: string; level: string }[]>('/authority/list'),
   confirmAuthority: (id: number, authority_key: string) =>
     call(`/applications/${id}/authority`, json('POST', { authority_key })),
   pay: (id: number, key: string, scenario: string) =>
