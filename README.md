@@ -21,6 +21,7 @@ A redesign concept for the online RTI (Right to Information) filing experience. 
 | Payments fail for avoidable reasons | "Before you pay" checklist from the portal's own list of failure reasons, plus an attachment-name checker (no spaces, no identity documents) |
 | No reminders as deadlines approach | Reminders panel with the dates already worked out (shown in-app only; email and SMS are not connected) |
 | Not sure what to write | Ten starter requests (ration card, roads, PF, pension, electricity, police, water, land, hospital, passport) in English and Hindi that ask for records |
+| Bright screens are hard on the eyes at night | Dark mode: follows the system setting until you pick one with the header toggle; text contrast was checked on every page |
 | Small text is hard to read | Text size controls (A-, A, A+) in the header, remembered between visits |
 | Records kept only 3 years | Receipt download and print-to-PDF |
 | Hard for people who read slowly or not at all | "Listen" button reads the draft and the RTI number aloud (Hindi and English) |
