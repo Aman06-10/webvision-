@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from . import llm, nv
 
 CENTRAL = "Central RTI portal (rtionline.gov.in)"
-STATE = "State RTI portal (varies by state)"
+STATE = "Your state's own RTI process (not rtionline.gov.in)"
 
 
 @dataclass(frozen=True)
@@ -116,7 +116,7 @@ NAME_HI = {
     "social": "समाज कल्याण विभाग (पेंशन, प्रमाणपत्र)", "state_school": "राज्य शिक्षा विभाग",
     "pwd": "लोक निर्माण विभाग (राजमार्ग, पुल)",
 }
-PORTAL_HI = {CENTRAL: "केंद्रीय आरटीआई पोर्टल (rtionline.gov.in)", STATE: "राज्य आरटीआई पोर्टल (हर राज्य का अलग)"}
+PORTAL_HI = {CENTRAL: "केंद्रीय आरटीआई पोर्टल (rtionline.gov.in)", STATE: "आपके राज्य की अपनी आरटीआई प्रक्रिया (rtionline.gov.in नहीं)"}
 assert set(NAME_HI) == set(BY_KEY)
 
 # Tuned on tests/queries.py. Embedding similarity of the best authority:

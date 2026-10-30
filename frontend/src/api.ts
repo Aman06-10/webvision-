@@ -60,3 +60,12 @@ export const api = {
   pay: (id: number, key: string, scenario: string) =>
     call(`/applications/${id}/pay`, json('POST', { scenario }, { 'Idempotency-Key': key })),
 }
+
+export type AppealResult = {
+  stage: string; can_first_appeal: boolean; can_second_appeal: boolean; reason: string
+  dates: Record<string, string>; days_left: Record<string, number>
+}
+export type AppealInput = {
+  filed: string; replied?: string; first_appeal?: string; fa_decided?: string; transferred_physically?: boolean
+}
+export const checkAppeal = (b: AppealInput) => call<AppealResult>('/appeal/check', json('POST', b))

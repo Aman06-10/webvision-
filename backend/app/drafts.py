@@ -1,32 +1,45 @@
+"""Draft validation against the real RTI Online text box rules.
+
+Source: rtionline.gov.in, "Guidelines for use of RTI Online Portal" (read 2026-10-30):
+text is limited to 3000 characters and only A-Z a-z 0-9 and  , . - _ ( ) / @ : & ? \\ %  are allowed.
+Longer or non-English text must go in as a PDF in "Supporting document".
+Whitespace (space, newline) is assumed allowed; the guidelines do not say.
+"""
 import re
-import unicodedata
 
 from . import config
 
-# Assumption: letters/marks/digits in any script plus common punctuation.
-# Replace with the portal's actual allowed set once confirmed.
-_ALLOWED_PUNCT = set(" \n\t.,;:()-/'\"?!%&@#+_[]₹")
+PORTAL_PUNCT = set(" \n\t,.-_()/@:&?\\%")
 
 
-def is_valid_char(ch: str) -> bool:
-    if ch in _ALLOWED_PUNCT:
-        return True
-    cat = unicodedata.category(ch)
-    return cat[0] in ("L", "M", "N")
+def is_portal_char(ch: str) -> bool:
+    return (ch.isascii() and ch.isalnum()) or ch in PORTAL_PUNCT
 
 
-def validate(text: str) -> dict:
-    invalid = sorted({ch for ch in text if not is_valid_char(ch)})
-    positions = [i for i, ch in enumerate(text) if not is_valid_char(ch)]
+# Common characters that have an obvious allowed replacement.
+REPLACEMENTS = {"’": "", "‘": "", "'": "", "“": "", "”": "", '"': "", ";": ",", "!": ".", "–": "-", "—": "-",
+                "…": "...", "₹": "Rs ", " ": " ", "[": "(", "]": ")", "{": "(", "}": ")", "#": "No ",
+                "+": " and ", "*": "", "=": "", "<": "", ">": "", "|": "/"}
+
+
+def validate(text: str, strict: bool = True) -> dict:
+    """strict=True checks the portal's character set (English drafts).
+    strict=False (Hindi drafts) skips it and flags that the text must go in as an attachment."""
+    bad_idx = [i for i, ch in enumerate(text) if strict and not is_portal_char(ch)]
+    over = len(text) > config.MAX_DRAFT_CHARS
     return {
         "length": len(text),
         "max": config.MAX_DRAFT_CHARS,
-        "too_long": len(text) > config.MAX_DRAFT_CHARS,
-        "invalid_chars": invalid,
-        "invalid_positions": positions[:200],
-        "ok": len(text) <= config.MAX_DRAFT_CHARS and not invalid and bool(text.strip()),
+        "too_long": over,
+        "invalid_chars": sorted({text[i] for i in bad_idx}),
+        "invalid_positions": bad_idx[:200],
+        "needs_attachment": over or (not strict and any(not ch.isascii() for ch in text)),
+        "ok": not over and not bad_idx and bool(text.strip()),
     }
 
 
 def sanitize(text: str) -> str:
-    return re.sub(r"[ \t]+\n", "\n", "".join(c for c in text if is_valid_char(c)))
+    """Replace what we can, then drop anything still not allowed."""
+    out = "".join(REPLACEMENTS.get(ch, ch) for ch in text)
+    out = "".join(ch for ch in out if is_portal_char(ch))
+    return re.sub(r"[ \t]+\n", "\n", re.sub(r" {2,}", " ", out))

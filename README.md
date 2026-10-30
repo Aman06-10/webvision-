@@ -12,8 +12,9 @@ A redesign concept for the online RTI (Right to Information) filing experience. 
 | Filing with the wrong authority can cost the fee | Suggests the right authority and portal before payment, with a confidence level and the reason. Unsure cases show the closest options to pick from instead of a forced guess |
 | Money cut, no RTI number | Payment state machine. A bank timeout shows **Confirming**, never **Failed**. The app checks with the bank on its own and issues the number once confirmed |
 | Double payment risk | Idempotency key per attempt plus a database rule: one live payment per request |
-| 3000-character limit and invalid characters | Live counter, invalid characters listed with one-click removal, server-side validation, autosave |
+| 3000-character limit and a narrow character set | Live counter, disallowed characters listed with one-tap auto-fix (the real portal set), Hindi or over-long drafts flagged as PDF attachments, autosave |
 | Hard to understand fees, deadlines, appeals | Help assistant that answers only from a small RTI knowledge base and cites its sources |
+| The first appeal will not open and nobody says why | Appeal checker: open or closed, the reason, and the dates (reply due, appeal window, second appeal) |
 | Hard for people who read slowly or not at all | "Listen" button reads the draft and the RTI number aloud (Hindi and English) |
 
 Interface is available in English and Hindi. Animations respect `prefers-reduced-motion`.
@@ -30,6 +31,7 @@ FastAPI backend  (all API keys live here, never in the browser)
   |- /draft/*            validate, sanitize, tidy wording (chat model)
   |- /authority/find     keyword rules (English, Hindi, Hinglish) -> embeddings -> chat model among the closest candidates -> "unknown"
   |- /rag/ask            embeddings search -> chat model answers from the knowledge base
+  |- /appeal/check       appeal eligibility and dates (pure rules, no AI)
   |- /applications/*     drafts, authority confirmation, payment
   |- /payments/*         state machine, mock gateway, webhook, reconciliation
   |- /usage              calls per NVIDIA service vs local throttle
@@ -92,7 +94,7 @@ Without any keys the app still works: authority finding falls back to keyword ru
 cd backend && . .venv/bin/activate && python -m pytest -q
 ```
 
-Covers the payment state machine (replay, double payment, timeout then reconcile, failure then retry, webhook signature), authority rules and fallbacks, draft validation, the rate limiter, and the help assistant's fallbacks.
+Covers appeal rules (every stage and boundary day), the Bhashini request/response shape against a fake server, the payment state machine (replay, double payment, timeout then reconcile, failure then retry, webhook signature), authority rules and fallbacks, draft validation, the rate limiter, and the help assistant's fallbacks.
 
 ## Try the demo
 
@@ -115,17 +117,32 @@ Checked end to end against the live NVIDIA APIs on 2026-10-30:
 
 Known limits, stated plainly:
 
-- **Only Hindi and English are verified for voice and translation.** In testing, Tamil, Telugu, Marathi and Gujarati text was mistranslated by the Riva translate model, and the chat model also made mistakes. Those languages are marked *beta* and the user is asked to review the English text. Reaching all 22 scheduled languages needs a dedicated service such as Bhashini; an optional adapter is in `backend/app/voice.py` but is **untested** (no credentials).
+- **Only Hindi and English are verified for voice and translation.** In testing, Tamil, Telugu, Marathi and Gujarati text was mistranslated by the Riva translate model, and the chat model also made mistakes. Those languages are marked *beta* and the user is asked to review the English text. Reaching all 22 scheduled languages needs a dedicated service such as Bhashini. An optional adapter is in `backend/app/voice.py`: its request and response handling follows Bhashini's published pipeline docs and is checked against a fake server in `tests/test_bhashini.py`, but it has **never been run against the real service** (it needs a free account's `userID` and `ulcaApiKey`, and the pipeline id comes from the ULCA portal; set `BHASHINI_USER_ID`, `BHASHINI_ULCA_API_KEY`, `BHASHINI_PIPELINE_ID`). Bhashini's docs say it is free for non-production use and paid for production or when charging end users. Its accuracy for any language is unmeasured here.
 - Text-to-speech has Hindi and English voices only; other languages fall back to the browser voice.
 - The mic button in the browser was not tested by a person; the backend path was tested with a WAV file.
 - The knowledge base in `backend/app/kb.py` is general guidance from the RTI Act, 2005 and the central RTI Rules, 2012 as the author understands them. State rules differ. It is not legal advice; verify before relying on any figure.
 - **Authority detection accuracy** (22 demo authorities, live APIs): 26 of 26 on the set the keyword lists were tuned on (so optimistic), and 17 of 18 on a held-out set of paraphrases written afterwards with no keywords in mind. The one miss (road tarring in a colony, chose PWD over municipal) came back with 0.6 confidence and municipal as an alternative. Queries are in `backend/tests/queries.py`; the held-out set is small, so treat this as indicative. Vague text such as "help" returns unknown and asks for more detail.
-- The authority table is demo data, and the allowed-character set for drafts is an assumption. Replace both with the real directory and the portal's actual rules.
+- The authority table is demo data; replace it with the real directory. The draft character rule and the facts on the landing page were read from rtionline.gov.in (Guidelines and FAQ) on 2026-10-30 and may change.
+- Appeal dates use the earliest reasonable reading of the RTI Act (30-day reply, 30-day first appeal window, 90-day second appeal) and are covered by unit tests. A late appeal can still be admitted for good reason; the checker does not judge that. Not legal advice.
 - Claims about the current portal's wrong-portal warning, payment FAQ, 3000-character limit, OTP delay, CAPTCHA text and blinking GIFs come from the portal's text. Mobile behaviour and CAPTCHA malfunction were **not** tested and are not claimed.
 
 ### NVIDIA usage limits
 
 Hosted models on build.nvidia.com are a trial service. Reports commonly cite about 40 requests per minute per account, but NVIDIA says limits vary by model, and responses carry no rate-limit headers, so remaining quota is not visible from the API; check your profile on build.nvidia.com. The backend throttles itself to 35 per minute per service and exposes counters at `GET /usage`.
+
+## More problems the portal's own FAQ points to
+
+Taken from the 26-question FAQ on rtionline.gov.in, as candidates for the next redesign steps (none are built yet unless marked):
+
+- Payment fails for seven listed reasons (card e-commerce flag off, session timeout, wrong OTP, wrong card details, low balance, switching payment mode, UPI request not approved). A pre-payment checklist and a plain retry screen would prevent most of them. *Retry screen: built; checklist: not built.*
+- Reconciliation takes 24 to 48 working hours and users are told to email a helpline. A status page with a "what to do now" step would replace the email. *Partly built (Confirming state).*
+- One request can produce several registration numbers when it is forwarded to several CPIOs; a grouped view would explain it.
+- A "supporting documents required" alert is only found by opening View Status; surface it on the dashboard.
+- Manually filed applications cannot get an online first appeal unless the CPIO lodges them; explain this up front. *Explained in the appeal checker's transfer case.*
+- The status OTP goes by email and can be delayed; add a resend cooldown and delivery hint.
+- Requests are kept for 3 years only; offer a downloadable receipt and request copy.
+- The FAQ advises users to ignore a browser certificate error. If that is still current, it trains users to bypass security warnings and should be fixed at the source.
+- The text box accepts English only; the real fix is an official way to submit text in Indian languages.
 
 ## Project layout
 
@@ -139,13 +156,14 @@ backend/
     authority.py   authority finder (rules, then chat model)
     payments.py    state machine, reconciliation, webhook
     gateway.py     mock payment gateway
-    drafts.py      validation and sanitising
+    appeal.py      appeal eligibility rules and dates
+    drafts.py      real portal character rules, validation and auto-fix
     db.py          SQLite schema
   tests/
 frontend/
   src/
-    App.tsx, RequestFlow.tsx, Help.tsx, Dashboard.tsx
-    i18n.ts        English and Hindi strings
+    App.tsx, Home.tsx (landing), RequestFlow.tsx, Appeal.tsx, Help.tsx, Dashboard.tsx
+    i18n.ts, strings2.ts   English and Hindi strings
     audio.ts       recording, WAV conversion, speech helpers
     styles.css     design and animations
 REDESIGN_PLAN.md   original problem selection and plan

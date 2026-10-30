@@ -1,8 +1,9 @@
 import { createContext, useContext } from 'react'
+import { EN2, HI2 } from './strings2'
 
 export type Lang = 'en' | 'hi'
 
-const S = {
+const BASE = {
   en: {
     brand: 'RTI Filing', concept: 'Redesign concept. Not the official portal.',
     nav_new: 'New request', nav_mine: 'My requests',
@@ -103,8 +104,11 @@ const S = {
   },
 } as const
 
+const S = { en: { ...BASE.en, ...EN2 }, hi: { ...BASE.hi, ...HI2 } }
+
 export type Key = keyof typeof S.en
 export const strings = S
+export const fmt = (s: string, p: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(p[k] ?? ''))
 
 export const LangCtx = createContext<{ lang: Lang; t: (k: Key) => string }>({ lang: 'en', t: k => k })
 export const useT = () => useContext(LangCtx)

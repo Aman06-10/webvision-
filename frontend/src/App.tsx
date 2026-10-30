@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { api, type Application } from './api'
+import Appeal from './Appeal'
 import Dashboard from './Dashboard'
+import Home from './Home'
 import Help from './Help'
 import RequestFlow from './RequestFlow'
 import { LangCtx, strings, type Key, type Lang } from './i18n'
@@ -10,7 +12,7 @@ const write = (k: string, v: string) => { try { localStorage.setItem(k, v) } cat
 
 export default function App() {
   const [lang, setLang] = useState<Lang>((read('lang') as Lang) || 'en')
-  const [view, setView] = useState<'new' | 'mine' | 'help'>('new')
+  const [view, setView] = useState<'home' | 'new' | 'mine' | 'help' | 'appeal'>('home')
   const [email, setEmail] = useState(read('email') ?? '')
   const [resume, setResume] = useState<Application | null>(null)
   const [health, setHealth] = useState<{ llm: boolean; stt: boolean; tts: boolean; bhashini: boolean } | null>(null)
@@ -25,10 +27,12 @@ export default function App() {
       <a className="skip" href="#main">Skip to content</a>
       <header className="top">
         <div className="wrap top-row">
-          <div className="brand"><span className="brand-mark" aria-hidden>RTI</span>{t('brand')}</div>
+          <button className="brand" onClick={() => setView('home')}><span className="brand-mark" aria-hidden>RTI</span>{t('brand')}</button>
           <nav aria-label="Main">
+            <button className={view === 'home' ? 'tab on' : 'tab'} onClick={() => setView('home')}>{t('nav_home')}</button>
             <button className={view === 'new' ? 'tab on' : 'tab'} onClick={() => { setResume(null); setView('new') }}>{t('nav_new')}</button>
             <button className={view === 'mine' ? 'tab on' : 'tab'} onClick={() => setView('mine')} disabled={!email}>{t('nav_mine')}</button>
+            <button className={view === 'appeal' ? 'tab on' : 'tab'} onClick={() => setView('appeal')}>{t('nav_appeal')}</button>
             <button className={view === 'help' ? 'tab on' : 'tab'} onClick={() => setView('help')}>{t('nav_help')}</button>
           </nav>
           <div className="langsw" role="group" aria-label="Interface language">
@@ -38,7 +42,9 @@ export default function App() {
         </div>
       </header>
       <main id="main" className="wrap">
-        {view === 'help' ? <Help />
+        {view === 'home' ? <Home go={v => { setResume(null); setView(v) }} />
+          : view === 'help' ? <Help />
+          : view === 'appeal' ? <Appeal />
           : view === 'new'
             ? <RequestFlow key={resume?.id ?? 'new'} email={email} setEmail={setEmail} resume={resume} />
             : <Dashboard email={email} onOpen={a => { setResume(a); setView('new') }} />}

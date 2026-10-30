@@ -86,9 +86,21 @@ def test_llm_failure_falls_back(monkeypatch):
     assert r["key"] == "police" and r["confidence"] <= 0.4 and "confirm" in r["reason"].lower()
 
 
-def test_draft_validation():
-    assert drafts.validate("नमस्ते, मुझे जानकारी चाहिए।".replace("।", "."))["ok"]
-    v = drafts.validate("hello <script> 😀")
-    assert not v["ok"] and "<" in v["invalid_chars"]
+def test_draft_validation_uses_real_portal_character_set():
+    assert drafts.validate("Please share file notings (Rs 10) at 12/3, ward-5: ok?")["ok"]
+    v = drafts.validate("Don't share it; it's urgent!")
+    assert not v["ok"] and set(v["invalid_chars"]) == {"'", ";", "!"}
+    assert not drafts.validate("hello <script>")["ok"]
     assert drafts.validate("a" * 3001)["too_long"]
-    assert "<" not in drafts.sanitize("a<b>")
+
+
+def test_hindi_draft_is_not_char_checked_but_needs_attachment():
+    v = drafts.validate("मुझे जानकारी चाहिए", strict=False)
+    assert v["ok"] and v["needs_attachment"] and not v["invalid_chars"]
+    assert drafts.validate("मुझे जानकारी चाहिए")["invalid_chars"]  # same text fails the English box
+
+
+def test_sanitize_replaces_before_dropping():
+    out = drafts.sanitize("Don\u2019t pay \u20b9 10; ask!  now <b>")
+    assert out == "Dont pay Rs 10, ask. now b"
+    assert drafts.validate(out)["ok"]

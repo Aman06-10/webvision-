@@ -50,7 +50,7 @@ async def _pipeline(tasks: list[dict], input_data: dict) -> dict:
                          "ulcaApiKey": config.BHASHINI_ULCA_API_KEY},
                 json={"pipelineTasks": [{"taskType": t["taskType"], "config": {
                     "language": t["config"]["language"]}} for t in tasks],
-                    "pipelineRequestConfig": {"pipelineId": "64392f96daac500b55c543cd"}},
+                    "pipelineRequestConfig": {"pipelineId": config.BHASHINI_PIPELINE_ID}},
             )
             cfg.raise_for_status()
             cfg = cfg.json()
@@ -74,12 +74,30 @@ async def _pipeline(tasks: list[dict], input_data: dict) -> dict:
 
 async def transcribe_and_translate(wav: bytes, src: str, target: str) -> dict:
     """wav = 16 kHz mono PCM. NVIDIA speech-to-text, then translation."""
+    if src not in VERIFIED and bhashini_configured():
+        try:
+            return await _bhashini_asr_translate(wav, src, target)
+        except VoiceUnavailable:
+            pass  # fall back to NVIDIA below
     try:
         original = await nv.stt(wav, src)
     except nv.NvError as e:
         raise VoiceUnavailable(str(e)) from e
     out = await translate_text(original, src, target)
     return {**out, "original": original, "engine": "nvidia-riva+" + out["engine"]}
+
+
+async def _bhashini_asr_translate(wav: bytes, src: str, target: str) -> dict:
+    tasks = [{"taskType": "asr", "config": {"language": {"sourceLanguage": src},
+                                            "audioFormat": "wav", "samplingRate": 16000}},
+             {"taskType": "translation", "config": {"language": {"sourceLanguage": src, "targetLanguage": target}}}]
+    out = await _pipeline(tasks, {"audio": [{"audioContent": base64.b64encode(wav).decode()}]})
+    try:
+        by = {r["taskType"]: r["output"][0] for r in out["pipelineResponse"]}
+        return {"original": by["asr"]["source"], "translated": by["translation"]["target"],
+                "engine": "bhashini", "quality": "beta"}
+    except (KeyError, IndexError) as e:
+        raise VoiceUnavailable("Unexpected Bhashini response") from e
 
 
 async def translate_text(text: str, src: str, target: str) -> dict:

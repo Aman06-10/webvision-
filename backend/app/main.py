@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import datetime as dt
 import uuid
 from typing import Literal
 
@@ -7,7 +8,7 @@ from fastapi import FastAPI, File, Form, Header, HTTPException, Request, Respons
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 
-from . import authority, db, drafts, gateway, llm, nv, payments, rag, voice
+from . import appeal, authority, db, drafts, gateway, llm, nv, payments, rag, voice
 
 
 async def _reconciler():
@@ -133,8 +134,8 @@ def save_draft(app_id: int, body: DraftIn):
 
 
 @app.post("/draft/validate")
-def validate_draft(body: DraftIn):
-    return drafts.validate(body.draft)
+def validate_draft(body: DraftIn, lang: Literal["en", "hi"] = "en"):
+    return drafts.validate(body.draft, strict=lang == "en")
 
 
 @app.post("/draft/sanitize")
@@ -232,3 +233,22 @@ async def webhook(request: Request, x_signature: str = Header(...)):
     except payments.PaymentError as e:
         raise HTTPException(e.code, str(e))
     return {"ok": True}
+
+
+# ---- appeal -------------------------------------------------------------
+class AppealIn(BaseModel):
+    filed: dt.date
+    replied: dt.date | None = None
+    first_appeal: dt.date | None = None
+    fa_decided: dt.date | None = None
+    transferred_physically: bool = False
+    today: dt.date | None = None  # for demos and tests
+
+
+@app.post("/appeal/check")
+def appeal_check(body: AppealIn):
+    try:
+        return appeal.assess(body.filed, body.today or dt.date.today(), body.replied, body.first_appeal,
+                             body.fa_decided, body.transferred_physically)
+    except ValueError as e:
+        raise HTTPException(400, str(e))

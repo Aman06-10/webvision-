@@ -5,11 +5,15 @@ import Stamp from './Stamp'
 import { useT, type Key } from './i18n'
 
 const MAX = 3000
-const BAD = /[^\p{L}\p{M}\p{N} \n\t.,;:()\-/'"?!%&@#+_[\]₹]/gu
+// Real RTI Online text-box rule (rtionline.gov.in guidelines): A-Z a-z 0-9 and , . - _ ( ) / @ : & ? \ %
+const BAD = /[^A-Za-z0-9 \n\t,.\-_()/@:&?\\%]/g
+const NON_ASCII = /[^\x00-\x7F]/
 const EDITABLE = ['DRAFT', 'PAYMENT_FAILED']
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 type Props = { email: string; setEmail: (e: string) => void; resume: Application | null }
+
+const over0 = (s: string) => s.length > MAX
 
 function Speaker() {
   return (
@@ -69,9 +73,10 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
   }, [resume])
 
   const editable = !!app && EDITABLE.includes(app.state)
-  const bad = useMemo(() => [...new Set(draft.match(BAD) ?? [])], [draft])
+  const bad = useMemo(() => (target === 'en' ? [...new Set(draft.match(BAD) ?? [])] : []), [draft, target])
+  const needsPdf = over0(draft) || (target === 'hi' && NON_ASCII.test(draft))
   const over = draft.length - MAX
-  const draftOk = draft.trim().length > 0 && bad.length === 0 && over <= 0 && !revealing
+  const draftOk = draft.trim().length > 0 && bad.length === 0 && !revealing
   const confirmed = !!app?.authority_confirmed
   const reach = confirmed ? 3 : draftOk ? 2 : 1
 
@@ -296,17 +301,18 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
                   <textarea className="paper" rows={11} value={draft} readOnly={revealing}
                     onChange={e => { setDraft(e.target.value); setVia('') }} disabled={locked} aria-label={t('official')} lang={target} />
                   <div className="sheet-foot">
-                    <span className={over > 0 ? 'mono small bad-t' : 'mono small'}>{draft.length} / {MAX} {t('counter')}</span>
+                    <span className={over > 0 ? 'mono small warn-t' : 'mono small'}>{draft.length} / {MAX} {t('counter')}</span>
                     {via && <span className="small muted">{t('via')}: {via}</span>}
                     <button className="btn btn-quiet btn-sm" type="button" onClick={() => speak(draft, target, api.speak)} disabled={!draft.trim() || revealing} aria-label={t('listen')}><Speaker />{t('listen')}</button>
                     <button className="btn btn-quiet btn-sm" type="button" onClick={tidy} disabled={locked || !draft.trim() || !!busy}>{t('tidy')}</button>
                   </div>
                 </div>
-                {over > 0 && <p role="alert" className="note bad">{t('too_long')} {over}</p>}
+                {over > 0 && <p role="status" className="note warn">{t('attach_long')}</p>}
+                {target === 'hi' && NON_ASCII.test(draft) && <p role="status" className="note warn">{t('hi_attach')}</p>}
                 {bad.length > 0 && (
                   <p role="alert" className="note bad">
                     {t('bad_chars')} <span className="mono">{bad.join(' ')}</span>{' '}
-                    <button type="button" className="link" onClick={() => setDraft(draft.replace(BAD, ''))}>{t('remove_bad')}</button>
+                    <button type="button" className="link" onClick={() => api.sanitize(draft).then(r => setDraft(r.draft)).catch(() => setDraft(draft.replace(BAD, '')))}>{t('fix_auto')}</button>
                   </p>
                 )}
                 {quality === 'beta' && via && !revealing && <p className="note warn" role="alert">{t('beta_warn')}</p>}
@@ -366,7 +372,7 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
                     {authList.map(a => <option key={a.key} value={a.key}>{nm(a)}</option>)}
                   </select>
                 </label>
-                {authList.find(a => a.key === chosen)?.level === 'state' && <p className="note">{t('state_note')}</p>}
+                {authList.find(a => a.key === chosen)?.level === 'state' && <p className="note warn" role="alert">{t('state_note2')}</p>}
               </>
             )}
             {!auth && !confirmed && busy !== 'auth' && (

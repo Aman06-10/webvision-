@@ -1,8 +1,8 @@
 """Small RTI knowledge base for the help assistant.
 
-General guidance drawn from the RTI Act, 2005 and the central RTI Rules, 2012 as the
-author understands them. State rules differ. This is NOT legal advice; verify against
-the Act or the authority's own page before relying on a figure.
+Portal facts (ids: which, limit, payment, appeal1, firstappeal_portal, state_portal, fee, bpl) come from
+rtionline.gov.in "Guidelines" and "FAQ" pages as read on 2026-10-30. Act facts come from the RTI Act, 2005
+as the author understands them. State rules differ. This is NOT legal advice; verify before relying on it.
 """
 
 PASSAGES = [
@@ -11,7 +11,7 @@ PASSAGES = [
     {"id": "how", "title": "How to apply",
      "text": "Send a written or electronic request to the Public Information Officer (PIO) of the authority concerned, as set out in Section 6(1). Ask clear, specific questions about one subject. The Act covers information held as records, documents, files, reports and similar; a PIO is not required to create new information, give opinions, or answer hypothetical questions."},
     {"id": "fee", "title": "Fee",
-     "text": "Under the central RTI Rules, 2012 the application fee for a central public authority is Rs 10. Copies cost Rs 2 per A4 page. Applicants below the poverty line are exempt from the fee when they attach proof. States set their own fee, so check the state's rules."},
+     "text": "The fee for an application is as prescribed in the RTI Rules, 2012; for central public authorities it is Rs 10, and copies cost Rs 2 per A4 page. If extra fee is needed for the cost of providing information, the CPIO tells you through the portal Status page and by email or SMS. States set their own fee, so check the state's rules. Payment on the portal is by internet banking, Mastercard or Visa cards, RuPay cards or UPI."},
     {"id": "time", "title": "Time to reply",
      "text": "The PIO must reply within 30 days of receiving the request (Section 7(1)). If the information concerns a person's life or liberty, the reply is due within 48 hours. If the request goes through an Assistant PIO, add 5 days. If the request belongs to another authority, it must be transferred within 5 days (Section 6(3))."},
     {"id": "appeal1", "title": "First appeal",
@@ -23,11 +23,17 @@ PASSAGES = [
     {"id": "penalty", "title": "Penalty for delay",
      "text": "Under Section 20, an Information Commission can penalise a PIO Rs 250 for each day of delay, up to Rs 25,000, if the PIO refused or delayed without reasonable cause, or gave wrong or misleading information."},
     {"id": "which", "title": "Which authority or portal",
-     "text": "Requests to central government ministries and departments can go through the central online portal, rtionline.gov.in. State government bodies such as state police, electricity boards, municipal bodies and land records follow their own state's RTI process. File with the authority that actually holds the records; a request to the wrong authority is usually transferred, which costs time, or rejected."},
-    {"id": "limit", "title": "Online text limit",
-     "text": "The online application form allows about 3000 characters for the request text, and accepts only a limited set of characters. Keep requests short and numbered; attach documents separately if needed."},
-    {"id": "payment", "title": "Payment problems in this app",
-     "text": "In this redesign, if the bank does not confirm your payment straight away, the request shows 'Confirming' instead of 'Failed'. Do not pay again. The app checks with the bank on its own, and your RTI number appears once payment is confirmed. A second payment for the same request is blocked."},
+     "text": "The online portal rtionline.gov.in is only for Ministries, Departments and other public authorities of the Central Government listed in its form. State public authorities, such as state police, electricity boards, municipal bodies and land records, are not on it. If you file a state matter there, the application is returned without any refund of the fee. If you pick the wrong central authority, the Nodal Officer transfers it to the right one under Section 6(3)."},
+    {"id": "limit", "title": "Online text limit and allowed characters",
+     "text": "The request text on the portal is limited to 3000 characters. Only English letters A-Z a-z, digits 0-9 and the characters , . - _ ( ) / @ : & ? \\ % are allowed in it. If your text is longer, or not in English, upload it as a PDF in Supporting document. The PDF file name must not contain spaces. Do not upload Aadhaar or PAN cards; only a BPL certificate is accepted as an identity-type document."},
+    {"id": "payment", "title": "If money is cut but there is no registration number",
+     "text": "Do not pay again and do not submit the request a second time. The registration number is generated after reconciliation, which can take 24 to 48 working hours. You can use the Payment Reconciliation option on the portal to check earlier. If there is still no number after 24 to 48 working hours, email helprtionline-dopt[at]nic[dot]in with your transaction details, or ask your bank for a refund. In this redesign the request shows Confirming instead of Failed and the app keeps checking."},
+    {"id": "paymentfail", "title": "Why an online payment fails",
+     "text": "The portal lists these common reasons: the card has e-commerce use disabled; the browser was closed or the session timed out; a wrong or missing OTP; wrong card number, CVV or expiry; insufficient balance; the person cancelled and tried another payment mode; or a UPI collect request was not approved in time."},
+    {"id": "firstappeal_portal", "title": "First appeal on the portal",
+     "text": "No fee is charged for a first appeal. To file it online you need the registration number and email ID of the original online application. Online first appeal works only for applications that were filed online. The portal will not let you file if the application was physically transferred to an authority not on the portal (file on paper to that authority), or if the CPIO has not replied and the 30 days have not yet passed."},
+    {"id": "bpl", "title": "Fee exemption",
+     "text": "No fee is required from a citizen below the poverty line under the RTI Rules, 2012, but a copy of the certificate issued by the appropriate government must be attached with the application."},
     {"id": "tips", "title": "Writing a good request",
      "text": "Name the department, the place and the period you mean. Ask for records such as file notings, copies of orders, tender documents or bills instead of asking why something happened. Number your questions. Keep a copy of what you sent and note the date."},
 ]
