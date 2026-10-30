@@ -33,7 +33,7 @@ export type Lang = { name: string; quality: 'verified' | 'beta' }
 export type Answer = { answer: string; sources: { id: string; title: string }[]; retrieval: string; answered_by: string }
 
 export const api = {
-  health: () => call<{ llm: boolean; stt: boolean; tts: boolean; bhashini: boolean }>('/health'),
+  health: () => call<{ llm: boolean; stt: boolean; tts: boolean }>('/health'),
   languages: () => call<Record<string, Lang>>('/languages'),
   ask: (question: string, lang: string) => call<Answer>('/rag/ask', json('POST', { question, lang })),
   speak: async (text: string, lang: string) => {

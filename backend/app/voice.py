@@ -1,16 +1,9 @@
-"""Voice -> text -> official English/Hindi draft (NVIDIA speech + translate; Bhashini optional).
+"""Voice -> text -> official English/Hindi draft (NVIDIA speech and translate).
 
-Bhashini path follows the ULCA "pipeline" flow as I understand it
-(config call with userID + ulcaApiKey, then compute call to the returned
-callback URL). It is UNTESTED without credentials: verify against the
-current Bhashini docs. Any failure raises VoiceUnavailable so the caller can
-fall back (browser speech for ASR, NVIDIA LLM for translation).
+Only Hindi and English are verified end to end. Other languages go through a general chat model and are
+flagged beta. Any failure raises VoiceUnavailable so the caller can fall back (browser speech for the mic).
 """
-import base64
-
-import httpx
-
-from . import config, llm, nv
+from . import llm, nv
 
 # code -> (native name, quality). Only hi and en have been checked end to end with
 # NVIDIA speech + translation. Others work through a general chat model and can
@@ -35,69 +28,14 @@ class VoiceUnavailable(Exception):
     pass
 
 
-def bhashini_configured() -> bool:
-    return bool(config.BHASHINI_USER_ID and config.BHASHINI_ULCA_API_KEY)
-
-
-async def _pipeline(tasks: list[dict], input_data: dict) -> dict:
-    if not bhashini_configured():
-        raise VoiceUnavailable("Bhashini not configured")
-    try:
-        async with httpx.AsyncClient(timeout=20) as http:
-            cfg = await http.post(
-                config.BHASHINI_CONFIG_URL,
-                headers={"userID": config.BHASHINI_USER_ID,
-                         "ulcaApiKey": config.BHASHINI_ULCA_API_KEY},
-                json={"pipelineTasks": [{"taskType": t["taskType"], "config": {
-                    "language": t["config"]["language"]}} for t in tasks],
-                    "pipelineRequestConfig": {"pipelineId": config.BHASHINI_PIPELINE_ID}},
-            )
-            cfg.raise_for_status()
-            cfg = cfg.json()
-            ep = cfg["pipelineInferenceAPIEndPoint"]
-            by_task = {c["taskType"]: c["config"][0]["serviceId"]
-                       for c in cfg["pipelineResponseConfig"]}
-            for t in tasks:
-                t["config"]["serviceId"] = by_task[t["taskType"]]
-            r = await http.post(
-                ep["callbackUrl"],
-                headers={ep["inferenceApiKey"]["name"]: ep["inferenceApiKey"]["value"]},
-                json={"pipelineTasks": tasks, "inputData": input_data},
-            )
-            r.raise_for_status()
-            return r.json()
-    except VoiceUnavailable:
-        raise
-    except Exception as e:
-        raise VoiceUnavailable(f"Bhashini call failed: {e}") from e
-
-
 async def transcribe_and_translate(wav: bytes, src: str, target: str) -> dict:
     """wav = 16 kHz mono PCM. NVIDIA speech-to-text, then translation."""
-    if src not in VERIFIED and bhashini_configured():
-        try:
-            return await _bhashini_asr_translate(wav, src, target)
-        except VoiceUnavailable:
-            pass  # fall back to NVIDIA below
     try:
         original = await nv.stt(wav, src)
     except nv.NvError as e:
         raise VoiceUnavailable(str(e)) from e
     out = await translate_text(original, src, target)
     return {**out, "original": original, "engine": "nvidia-riva+" + out["engine"]}
-
-
-async def _bhashini_asr_translate(wav: bytes, src: str, target: str) -> dict:
-    tasks = [{"taskType": "asr", "config": {"language": {"sourceLanguage": src},
-                                            "audioFormat": "wav", "samplingRate": 16000}},
-             {"taskType": "translation", "config": {"language": {"sourceLanguage": src, "targetLanguage": target}}}]
-    out = await _pipeline(tasks, {"audio": [{"audioContent": base64.b64encode(wav).decode()}]})
-    try:
-        by = {r["taskType"]: r["output"][0] for r in out["pipelineResponse"]}
-        return {"original": by["asr"]["source"], "translated": by["translation"]["target"],
-                "engine": "bhashini", "quality": "beta"}
-    except (KeyError, IndexError) as e:
-        raise VoiceUnavailable("Unexpected Bhashini response") from e
 
 
 async def translate_text(text: str, src: str, target: str) -> dict:
@@ -112,17 +50,6 @@ async def translate_text(text: str, src: str, target: str) -> dict:
                     "engine": "nvidia-riva-translate", "quality": "verified"}
         except nv.NvError:
             quality = "beta"  # fall through to other engines, flagged as unverified
-
-    if bhashini_configured():
-        try:
-            out = await _pipeline(
-                [{"taskType": "translation", "config": {
-                    "language": {"sourceLanguage": src, "targetLanguage": target}}}],
-                {"input": [{"source": text}]})
-            return {"original": text, "translated": out["pipelineResponse"][0]["output"][0]["target"],
-                    "engine": "bhashini", "quality": "beta"}
-        except (VoiceUnavailable, KeyError, IndexError):
-            pass
 
     t = await llm.chat(
         "You are a careful translator.",

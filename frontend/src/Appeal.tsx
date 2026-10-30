@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { ApiError, checkAppeal, type AppealResult } from './api'
+import { api } from './api'
+import { speak } from './audio'
 import { fmt, useT, type Key } from './i18n'
 
 const iso = (d: Date) => d.toISOString().slice(0, 10)
@@ -102,6 +104,7 @@ export function AppealCheck({ initialFiled }: { initialFiled?: string }) {
               <div className="verdict-badge" aria-hidden>{tone === 'ok' ? '✓' : tone === 'warn' ? '…' : '!'}</div>
               <h2>{t(`s_${res.stage}` as Key)}</h2>
               <p>{fmt(t(stageKey as Key), params)}</p>
+              <button type="button" className="link" onClick={() => speak(`${t(`s_${res.stage}` as Key)}. ${fmt(t(stageKey as Key), params)}`, lang, api.speak)}>{t('a_listen')}</button>
               <h3>{t('a_dates')}</h3>
               <ol className="dates">
                 {KEYS.filter(k => res.dates[k]).map(k => {

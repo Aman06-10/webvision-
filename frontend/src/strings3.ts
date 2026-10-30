@@ -51,6 +51,8 @@ export const EN3 = {
   n2: '3.85 lakh', n2t: 'appeals and complaints pending across 28 information commissions on 30 June 2026', n2s: 'Satark Nagrik Sangathan via PTI',
   n3: '24 to 48', n3t: 'working hours a paid applicant may wait for a registration number, told not to pay again', n3s: 'rtionline.gov.in guidelines and FAQ',
   menu: 'Menu',
+  tpl_h: 'Not sure what to write? Pick a topic', tpl_note: 'A starting point. Change the place, dates and names to match your case.',
+  a_listen: 'Listen to this', copy_req: 'Copy', official_portals: 'Official portals', font_dec: 'Smaller text', font_inc: 'Larger text', font_reset: 'Normal text size',
 }
 
 export const HI3 = {
@@ -96,6 +98,8 @@ export const HI3 = {
   n2: '3.85 लाख', n2t: '28 सूचना आयोगों में 30 जून 2026 को लंबित अपीलें और शिकायतें', n2s: 'सतर्क नागरिक संगठन, पीटीआई के ज़रिए',
   n3: '24 से 48', n3t: 'कार्य-घंटे तक भुगतान करने वाला पंजीकरण नंबर का इंतज़ार कर सकता है, और दोबारा भुगतान न करने को कहा जाता है', n3s: 'rtionline.gov.in दिशानिर्देश और FAQ',
   menu: 'मेनू',
+  tpl_h: 'क्या लिखें, समझ नहीं आ रहा? एक विषय चुनें', tpl_note: 'यह बस शुरुआत है। जगह, तारीख़ें और नाम अपने मामले के अनुसार बदलें।',
+  a_listen: 'यह सुनें', copy_req: 'कॉपी', official_portals: 'आधिकारिक पोर्टल', font_dec: 'छोटा पाठ', font_inc: 'बड़ा पाठ', font_reset: 'सामान्य पाठ आकार',
   // issue labels (Hindi UI; English UI shows the server message)
   i_missing_name: 'अपना नाम जोड़ें।', i_missing_address: 'अपना पता जोड़ें।', i_missing_authority: 'सार्वजनिक प्राधिकरण जोड़ें।',
   i_missing_filed_on: 'आवेदन की तारीख़ जोड़ें।', i_missing_grounds: 'कम से कम एक आधार चुनें या अपना लिखें।',

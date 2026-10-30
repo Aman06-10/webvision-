@@ -33,8 +33,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"],
 
 @app.get("/health")
 def health():
-    return {"llm": llm.available(), "stt": nv.STT.configured, "tts": nv.TTS.configured,
-            "bhashini": voice.bhashini_configured()}
+    return {"llm": llm.available(), "stt": nv.STT.configured, "tts": nv.TTS.configured}
 
 
 @app.get("/usage")

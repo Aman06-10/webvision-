@@ -4,6 +4,8 @@ import { speak, speechSupported, startBrowserSpeech, startRecording } from './au
 import Stamp from './Stamp'
 import { useT, fmt, type Key } from './i18n'
 import { IssueList, download } from './tools'
+import { Confetti } from './Reveal'
+import { TEMPLATES } from './templates'
 
 const MAX = 3000
 // Real RTI Online text-box rule (rtionline.gov.in guidelines): A-Z a-z 0-9 and , . - _ ( ) / @ : & ? \ %
@@ -307,12 +309,13 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
                 </label>
                 {!locked && !original.trim() && (
                   <div className="examples">
-                    <div className="small muted">{t('examples_h')}</div>
+                    <div className="small muted">{t('tpl_h')}</div>
                     <div className="chips">
-                      {(['eg1', 'eg2', 'eg3'] as Key[]).map(k => (
-                        <button key={k} type="button" className="chip chip-wide" onClick={() => setOriginal(t(k))}>{t(k)}</button>
+                      {TEMPLATES.map(x => (
+                        <button key={x.id} type="button" className="chip" onClick={() => setOriginal(src === 'hi' ? x.hi : x.en)}>{x.label[lang === 'hi' ? 'hi' : 'en']}</button>
                       ))}
                     </div>
+                    <div className="small muted">{t('tpl_note')}</div>
                   </div>
                 )}
                 <button className="btn" type="button" onClick={() => toDraft(original)} disabled={locked || !original.trim() || !!busy}>
@@ -331,6 +334,7 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
                   <div className="sheet-foot">
                     <span className={over > 0 ? 'mono small warn-t' : 'mono small'}>{draft.length} / {MAX} {t('counter')}</span>
                     {via && <span className="small muted">{t('via')}: {via}</span>}
+                    <button className="btn btn-quiet btn-sm" type="button" onClick={() => navigator.clipboard?.writeText(draft)} disabled={!draft.trim()}>{t('copy_req')}</button>
                     <button className="btn btn-quiet btn-sm" type="button" onClick={() => speak(draft, target, api.speak)} disabled={!draft.trim() || revealing} aria-label={t('listen')}><Speaker />{t('listen')}</button>
                     <button className="btn btn-quiet btn-sm" type="button" onClick={tidy} disabled={locked || !draft.trim() || !!busy}>{t('tidy')}</button>
                   </div>
@@ -430,6 +434,7 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
               <div className="col">
                 {st === 'SUBMITTED' ? (
                   <div className="receipt" role="status">
+                    <Confetti />
                     <Check />
                     <h2>{t('done_h')}</h2>
                     <p className="muted">{t('done_p')}</p>

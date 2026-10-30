@@ -23,17 +23,6 @@ STT_SERVER = "grpc.nvcf.nvidia.com:443"
 RPM_LIMIT = int(os.getenv("NVIDIA_RPM_LIMIT", "35"))
 HTTP_TIMEOUT_S = float(os.getenv("HTTP_TIMEOUT_S", "20"))
 
-BHASHINI_USER_ID = os.getenv("BHASHINI_USER_ID", "")
-BHASHINI_ULCA_API_KEY = os.getenv("BHASHINI_ULCA_API_KEY", "")
-BHASHINI_CONFIG_URL = os.getenv(
-    "BHASHINI_CONFIG_URL",
-    "https://meity-auth.ulcacontrib.org/ulca/apis/v0/model/getModelsPipeline",
-)
-
-# Pipeline id comes from the ULCA portal / Pipeline Search call. The default is the one seen in
-# community code, not in the official docs, so confirm it for your account.
-BHASHINI_PIPELINE_ID = os.getenv("BHASHINI_PIPELINE_ID", "64392f96daac500b55c543cd")
-
 WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "dev-only-secret")
 DB_PATH = os.getenv("DB_PATH", "rti.db")
 

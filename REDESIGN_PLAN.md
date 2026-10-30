@@ -1,5 +1,7 @@
 # RTI Portal Redesign: Plan
 
+> Update: Bhashini was dropped from the project. Voice, translation and chat all use NVIDIA; Hindi and English are verified, other languages are beta. Mentions of Bhashini below are from the original plan and are kept for history.
+
 Hackathon build, ~2.5 hours. Stack: Next.js (Tailwind, next-intl) + FastAPI + SQLite/Postgres.
 LLM: NVIDIA API only (OpenAI-compatible). Voice: Bhashini (see decision D1).
 

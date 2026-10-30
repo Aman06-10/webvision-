@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { CountUp, Reveal } from './Reveal'
 import { useT, type Key } from './i18n'
 
 type Props = { go: (v: 'new' | 'appeal' | 'help') => void }
@@ -32,6 +33,9 @@ export default function Home({ go }: Props) {
           <p className="small muted">{t('h_trust')}</p>
         </div>
         <div className="hero-demo" aria-hidden>
+          <span className="float-chip fc1"><i />{t('st_PAYMENT_PENDING')}</span>
+          <span className="float-chip fc2">✓ {t('step_2')}</span>
+          <span className="float-chip fc3">{t('rm_title')}</span>
           <div className="demo-card">
             <div className="demo-label">{t('h_demo_in')}</div>
             <div className="demo-hi" lang="hi">{t('h_demo_hi')}</div>
@@ -49,8 +53,8 @@ export default function Home({ go }: Props) {
         <p className="small muted">{t('k_src')}</p>
         <ul className="facts">
           {facts.map(n => (
-            <li key={n}><span className="fact-n" aria-hidden>{n}</span>
-              <div><strong>{t(`k${n}h` as Key)}</strong><p>{t(`k${n}` as Key)}</p></div></li>
+            <Reveal as="li" key={n} delay={(n - 1) * 70}><span className="fact-n" aria-hidden>{n}</span>
+              <div><strong>{t(`k${n}h` as Key)}</strong><p>{t(`k${n}` as Key)}</p></div></Reveal>
           ))}
         </ul>
       </section>
@@ -59,10 +63,10 @@ export default function Home({ go }: Props) {
         <h2 id="n-h">{t('n_title')}</h2>
         <div className="num-grid">
           {([1, 2, 3] as const).map(n => (
-            <figure key={n} className="stat">
-              <div className="stat-n">{t(`n${n}` as Key)}</div>
+            <Reveal key={n} delay={(n - 1) * 120} className="stat-wrap"><figure className="stat">
+              <div className="stat-n"><CountUp text={t(`n${n}` as Key)} /></div>
               <figcaption>{t(`n${n}t` as Key)}<span className="small muted">{t(`n${n}s` as Key)}</span></figcaption>
-            </figure>
+            </figure></Reveal>
           ))}
         </div>
         <p className="small muted">{t('n_src')}</p>
@@ -73,10 +77,10 @@ export default function Home({ go }: Props) {
         <div className="pgrid" role="table">
           <div className="phead" role="row"><span role="columnheader">{t('p_now')}</span><span role="columnheader">{t('p_new')}</span></div>
           {pairs.map(n => (
-            <div className="prow" role="row" key={n}>
+            <Reveal className="prow" key={n} delay={(n - 1) * 80}>
               <p className="p-now" role="cell">{t(`p${n}a` as Key)}</p>
               <p className="p-new" role="cell">{t(`p${n}b` as Key)}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -85,18 +89,18 @@ export default function Home({ go }: Props) {
         <h2 id="w-h">{t('w_title')}</h2>
         <ol className="how-steps">
           {([1, 2, 3] as const).map(n => (
-            <li key={n}><span className="how-n">{n}</span><h3>{t(`w${n}h` as Key)}</h3><p>{t(`w${n}` as Key)}</p></li>
+            <Reveal as="li" key={n} delay={(n - 1) * 130}><span className="how-n">{n}</span><h3>{t(`w${n}h` as Key)}</h3><p>{t(`w${n}` as Key)}</p></Reveal>
           ))}
         </ol>
       </section>
 
-      <section className="band">
+      <Reveal as="section" className="band">
         <div><h2>{t('band_t')}</h2><p>{t('band_p')}</p></div>
         <div className="band-cta">
           <button className="btn btn-saffron btn-big" onClick={() => go('new')}>{t('h_cta')} <span aria-hidden>→</span></button>
           <button className="btn btn-ghost btn-big" onClick={() => go('help')}>{t('nav_help')}</button>
         </div>
-      </section>
+      </Reveal>
     </div>
   )
 }

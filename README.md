@@ -20,10 +20,12 @@ A redesign concept for the online RTI (Right to Information) filing experience. 
 | Requests worded as questions get refused | Hints while writing: ask for records, no Aadhaar or PAN numbers |
 | Payments fail for avoidable reasons | "Before you pay" checklist from the portal's own list of failure reasons, plus an attachment-name checker (no spaces, no identity documents) |
 | No reminders as deadlines approach | Reminders panel with the dates already worked out (shown in-app only; email and SMS are not connected) |
+| Not sure what to write | Ten starter requests (ration card, roads, PF, pension, electricity, police, water, land, hospital, passport) in English and Hindi that ask for records |
+| Small text is hard to read | Text size controls (A-, A, A+) in the header, remembered between visits |
 | Records kept only 3 years | Receipt download and print-to-PDF |
 | Hard for people who read slowly or not at all | "Listen" button reads the draft and the RTI number aloud (Hindi and English) |
 
-Interface is available in English and Hindi. Animations respect `prefers-reduced-motion`.
+Interface is available in English and Hindi. Motion (scroll reveal, count-up figures, typed draft, payment timeline, a short confetti burst on submit) is decorative and switches off with `prefers-reduced-motion`.
 
 ## Architecture
 
@@ -104,7 +106,7 @@ Without any keys the app still works: authority finding falls back to keyword ru
 cd backend && . .venv/bin/activate && python -m pytest -q
 ```
 
-Covers appeal rules (every stage and boundary day), the Bhashini request/response shape against a fake server, the payment state machine (replay, double payment, timeout then reconcile, failure then retry, webhook signature), authority rules and fallbacks, draft validation, the rate limiter, and the help assistant's fallbacks.
+Covers appeal rules (every stage and boundary day), the payment state machine (replay, double payment, timeout then reconcile, failure then retry, webhook signature), authority rules and fallbacks, draft validation, the rate limiter, and the help assistant's fallbacks.
 
 ## Try the demo
 
@@ -127,7 +129,7 @@ Checked end to end against the live NVIDIA APIs on 2026-10-30:
 
 Known limits, stated plainly:
 
-- **Only Hindi and English are verified for voice and translation.** In testing, Tamil, Telugu, Marathi and Gujarati text was mistranslated by the Riva translate model, and the chat model also made mistakes. Those languages are marked *beta* and the user is asked to review the English text. Reaching all 22 scheduled languages needs a dedicated service such as Bhashini. An optional adapter is in `backend/app/voice.py`: its request and response handling follows Bhashini's published pipeline docs and is checked against a fake server in `tests/test_bhashini.py`, but it has **never been run against the real service** (it needs a free account's `userID` and `ulcaApiKey`, and the pipeline id comes from the ULCA portal; set `BHASHINI_USER_ID`, `BHASHINI_ULCA_API_KEY`, `BHASHINI_PIPELINE_ID`). Bhashini's docs say it is free for non-production use and paid for production or when charging end users. Its accuracy for any language is unmeasured here.
+- **Only Hindi and English are verified for voice and translation.** In testing, Tamil, Telugu, Marathi and Gujarati text was mistranslated by the Riva translate model, and the chat model also made mistakes. Those languages are marked *beta* and the user is asked to review the English text. Reaching all 22 scheduled languages would need a dedicated language service; that is not part of this project.
 - Text-to-speech has Hindi and English voices only; other languages fall back to the browser voice.
 - The mic button in the browser was not tested by a person; the backend path was tested with a WAV file.
 - The knowledge base in `backend/app/kb.py` is general guidance from the RTI Act, 2005 and the central RTI Rules, 2012 as the author understands them. State rules differ. It is not legal advice; verify before relying on any figure.

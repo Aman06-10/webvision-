@@ -16,18 +16,26 @@ export default function App() {
   const [email, setEmail] = useState(read('email') ?? '')
   const [resume, setResume] = useState<Application | null>(null)
   const [menu, setMenu] = useState(false)
-  const [health, setHealth] = useState<{ llm: boolean; stt: boolean; tts: boolean; bhashini: boolean } | null>(null)
+  const [scrolled, setScrolled] = useState(false)
+  const [scale, setScale] = useState(Number(read('scale')) || 100)
+  const [health, setHealth] = useState<{ llm: boolean; stt: boolean; tts: boolean } | null>(null)
 
   const t = (k: Key) => strings[lang][k]
   const go = (v: typeof view) => { setView(v); setMenu(false); window.scrollTo(0, 0) }
   useEffect(() => { document.documentElement.lang = lang; write('lang', lang) }, [lang])
   useEffect(() => { api.health().then(setHealth).catch(() => setHealth(null)) }, [])
   useEffect(() => { if (email) write('email', email) }, [email])
+  useEffect(() => { document.documentElement.style.fontSize = `${17 * scale / 100}px`; write('scale', String(scale)) }, [scale])
+  useEffect(() => {
+    const f = () => setScrolled(window.scrollY > 6)
+    f(); window.addEventListener('scroll', f, { passive: true })
+    return () => window.removeEventListener('scroll', f)
+  }, [])
 
   return (
     <LangCtx.Provider value={{ lang, t }}>
       <a className="skip" href="#main">Skip to content</a>
-      <header className="top">
+      <header className={scrolled ? 'top scrolled' : 'top'}>
         <div className="wrap top-row">
           <button className="brand" onClick={() => go('home')}><span className="brand-mark" aria-hidden>RTI</span>{t('brand')}</button>
           <button className="menu-btn" aria-expanded={menu} aria-controls="main-nav" onClick={() => setMenu(m => !m)}>{t('menu')}</button>
@@ -38,6 +46,11 @@ export default function App() {
             <button className={view === 'appeal' ? 'tab on' : 'tab'} onClick={() => go('appeal')}>{t('nav_appeal')}</button>
             <button className={view === 'help' ? 'tab on' : 'tab'} onClick={() => go('help')}>{t('nav_help')}</button>
           </nav>
+          <div className="fontsw" role="group" aria-label="Text size">
+            <button aria-label={t('font_dec')} onClick={() => setScale(s => Math.max(85, s - 10))}>A-</button>
+            <button aria-label={t('font_reset')} onClick={() => setScale(100)}>A</button>
+            <button aria-label={t('font_inc')} onClick={() => setScale(s => Math.min(135, s + 10))}>A+</button>
+          </div>
           <div className="langsw" role="group" aria-label="Interface language">
             <button aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
             <button aria-pressed={lang === 'hi'} onClick={() => setLang('hi')} lang="hi">हिं</button>
@@ -54,6 +67,7 @@ export default function App() {
       </main>
       <footer className="wrap foot">
         <p>{t('concept')}</p>
+        <p className="small">{t('official_portals')}: <a href="https://rtionline.gov.in" target="_blank" rel="noreferrer">rtionline.gov.in</a> · <a href="https://cic.gov.in" target="_blank" rel="noreferrer">cic.gov.in</a></p>
         {health && (
           <p className="mono small">
             {t('health_llm')}: {health.llm ? t('on') : t('off')} · {t('health_bh')}: {health.stt && health.tts ? t('on') : t('off')}
