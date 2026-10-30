@@ -125,7 +125,8 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
   }, [step])
 
   const fail = (e: unknown) => setNotice(
-    e instanceof ApiError && e.status === 503 ? t('svc_busy')
+    e instanceof ApiError && e.detail === 'unreachable' ? t('api_down')
+      : e instanceof ApiError && e.status === 503 ? t('svc_busy')
       : e instanceof ApiError && typeof e.detail === 'string' ? e.detail : t('err'))
 
   function reveal(text: string) {

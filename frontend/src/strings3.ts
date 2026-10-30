@@ -50,7 +50,7 @@ export const EN3 = {
   n1: '14,603', n1t: 'cases returned by the Central Information Commission without orders in a year, against 31,179 registered', n1s: 'PTI report on the SNS assessment, 13 October 2026',
   n2: '3.85 lakh', n2t: 'appeals and complaints pending across 28 information commissions on 30 June 2026', n2s: 'Satark Nagrik Sangathan via PTI',
   n3: '24 to 48', n3t: 'working hours a paid applicant may wait for a registration number, told not to pay again', n3s: 'rtionline.gov.in guidelines and FAQ',
-  menu: 'Menu', theme_dark: 'Switch to dark mode', theme_light: 'Switch to light mode',
+  menu: 'Menu', api_down: "Can't reach the server. Start it with ./start.sh (see RUN_LOCAL.md), then try again.", theme_dark: 'Switch to dark mode', theme_light: 'Switch to light mode',
   tpl_h: 'Not sure what to write? Pick a topic', tpl_note: 'A starting point. Change the place, dates and names to match your case.',
   a_listen: 'Listen to this', copy_req: 'Copy', official_portals: 'Official portals', font_dec: 'Smaller text', font_inc: 'Larger text', font_reset: 'Normal text size',
 }
@@ -97,7 +97,7 @@ export const HI3 = {
   n1: '14,603', n1t: 'मामले केंद्रीय सूचना आयोग ने एक साल में बिना आदेश लौटा दिए, जबकि 31,179 दर्ज हुए', n1s: 'एसएनएस आकलन पर पीटीआई रिपोर्ट, 13 अक्टूबर 2026',
   n2: '3.85 लाख', n2t: '28 सूचना आयोगों में 30 जून 2026 को लंबित अपीलें और शिकायतें', n2s: 'सतर्क नागरिक संगठन, पीटीआई के ज़रिए',
   n3: '24 से 48', n3t: 'कार्य-घंटे तक भुगतान करने वाला पंजीकरण नंबर का इंतज़ार कर सकता है, और दोबारा भुगतान न करने को कहा जाता है', n3s: 'rtionline.gov.in दिशानिर्देश और FAQ',
-  menu: 'मेनू', theme_dark: 'डार्क मोड चालू करें', theme_light: 'लाइट मोड चालू करें',
+  menu: 'मेनू', api_down: 'सर्वर तक पहुँच नहीं हो पा रही। उसे ./start.sh से चालू करें (RUN_LOCAL.md देखें), फिर कोशिश करें।', theme_dark: 'डार्क मोड चालू करें', theme_light: 'लाइट मोड चालू करें',
   tpl_h: 'क्या लिखें, समझ नहीं आ रहा? एक विषय चुनें', tpl_note: 'यह बस शुरुआत है। जगह, तारीख़ें और नाम अपने मामले के अनुसार बदलें।',
   a_listen: 'यह सुनें', copy_req: 'कॉपी', official_portals: 'आधिकारिक पोर्टल', font_dec: 'छोटा पाठ', font_inc: 'बड़ा पाठ', font_reset: 'सामान्य पाठ आकार',
   // issue labels (Hindi UI; English UI shows the server message)

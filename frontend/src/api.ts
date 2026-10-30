@@ -9,8 +9,10 @@ export class ApiError extends Error {
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const r = await fetch(BASE + path, init)
   if (!r.ok) {
-    const body = await r.json().catch(() => ({}))
-    throw new ApiError(r.status, body.detail ?? r.statusText)
+    const body = await r.json().catch(() => null)
+    // a plain-text 5xx with no JSON means the dev proxy could not reach the API at all
+    if (body === null && r.status >= 500) throw new ApiError(r.status, 'unreachable')
+    throw new ApiError(r.status, body?.detail ?? r.statusText)
   }
   return r.json()
 }

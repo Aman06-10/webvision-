@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The RTI Gazette: Pitch Edition</title>
+<style>
+  @page { size: A4; margin: 13mm 13mm 15mm; @bottom-center { content: "The RTI Gazette · Pitch Edition · page " counter(page); font: 8pt Georgia, serif; color: #666; } }
+  * { box-sizing: border-box; }
+  html { font: 9.6pt/1.45 Georgia, 'Times New Roman', 'Devanagari Sangam MN', serif; color: #1a1a1a; }
+  body { margin: 0; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  h1, h2, h3 { font-family: Georgia, 'Times New Roman', serif; margin: 0; line-height: 1.15; }
+  .mast { text-align: center; border-top: 3px double #1a1a1a; border-bottom: 3px double #1a1a1a; padding: 7px 0 6px; margin-bottom: 4px; }
+  .mast h1 { font-size: 40pt; letter-spacing: .02em; font-variant: small-caps; }
+  .mast .tag { font-style: italic; font-size: 10pt; margin-top: 2px; }
+  .strip { display: flex; justify-content: space-between; font-size: 8pt; border-bottom: 1px solid #1a1a1a; padding: 3px 2px; margin-bottom: 9px; text-transform: uppercase; letter-spacing: .06em; }
+  .head { font-size: 22pt; font-weight: 700; margin: 4px 0 4px; }
+  .head.sm { font-size: 17pt; }
+  .deck { font-style: italic; font-size: 11pt; margin: 0 0 7px; color: #333; }
+  .rule { border: 0; border-top: 1px solid #1a1a1a; margin: 8px 0; }
+  .cols2 { column-count: 2; column-gap: 7mm; column-rule: 1px solid #bbb; }
+  .cols3 { column-count: 3; column-gap: 6mm; column-rule: 1px solid #bbb; }
+  p { margin: 0 0 5px; text-align: justify; hyphens: auto; }
+  .drop::first-letter { float: left; font-size: 36pt; line-height: .85; padding: 2px 5px 0 0; font-weight: 700; }
+  h2 { font-size: 13pt; border-bottom: 2px solid #1a1a1a; padding-bottom: 2px; margin: 8px 0 5px; break-after: avoid; }
+  h3 { font-size: 10.5pt; margin: 6px 0 2px; break-after: avoid; }
+  .box { border: 1.5px solid #1a1a1a; padding: 6px 9px; margin: 6px 0; break-inside: avoid; background: #faf7ef; }
+  .box.dark { background: #1a1a1a; color: #f5f0e0; } .box.dark h3 { color: #f0b36a; }
+  .box h3 { margin-top: 0; text-transform: uppercase; font-size: 9pt; letter-spacing: .08em; }
+  .quote { font-size: 12.5pt; font-style: italic; line-height: 1.35; border-left: 4px solid #b8601a; padding: 2px 0 2px 10px; margin: 6px 0; break-inside: avoid; }
+  table { border-collapse: collapse; width: 100%; font-size: 8.4pt; margin: 5px 0 7px; break-inside: auto; }
+  th { background: #1a1a1a; color: #f5f0e0; text-align: left; padding: 3px 5px; font-weight: 700; }
+  td { border-bottom: 1px solid #bbb; padding: 3px 5px; vertical-align: top; }
+  tr { break-inside: avoid; }
+  .tag { display: inline-block; font-size: 7pt; font-weight: 700; padding: 0 4px; border: 1px solid; border-radius: 2px; letter-spacing: .04em; white-space: nowrap; }
+  .ok { color: #1f6b3a; } .demo { color: #9a5b00; } .no { color: #a52a2a; } .src { color: #2b4a7a; }
+  ul, ol { margin: 2px 0 5px; padding-left: 15px; } li { margin-bottom: 2px; }
+  .small { font-size: 8pt; color: #444; }
+  .say { background: #fff; border: 1px dashed #777; padding: 3px 7px; margin: 3px 0; font-style: italic; break-inside: avoid; }
+  .step { display: grid; grid-template-columns: 52px 1fr; gap: 8px; border-top: 1px solid #bbb; padding: 5px 0; break-inside: avoid; }
+  .time { font: 700 9pt 'Courier New', monospace; background: #1a1a1a; color: #f5f0e0; padding: 2px 4px; height: fit-content; text-align: center; }
+  .arch { display: grid; grid-template-columns: 1fr 22px 1fr 22px 1fr; align-items: stretch; margin: 6px 0; break-inside: avoid; }
+  .arch .n { border: 1.5px solid #1a1a1a; padding: 5px 7px; background: #faf7ef; font-size: 8.4pt; } .arch .n b { display: block; font-size: 9pt; margin-bottom: 2px; text-transform: uppercase; letter-spacing: .05em; }
+  .arch .a { display: grid; place-items: center; font-size: 14pt; }
+  .qa { break-inside: avoid; margin-bottom: 6px; } .qa b { display: block; } .qa .ans { margin: 1px 0 0 0; }
+  .chk { list-style: none; padding-left: 0; } .chk li::before { content: "☐  "; }
+  .big { font-size: 24pt; font-weight: 700; line-height: 1; } .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 6px 0; }
+  .stats div { border: 1.5px solid #1a1a1a; padding: 5px 7px; background: #faf7ef; break-inside: avoid; } .stats span { font-size: 7.6pt; display: block; line-height: 1.25; margin-top: 2px; }
+  table.tight td { padding: 2px 5px; font-size: 8.1pt; line-height: 1.3; } table.tight { margin-bottom: 3px; }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+
+<!-- ================= PAGE 1 ================= -->
+<section class="page">
+  <div class="mast"><h1>The RTI Gazette</h1><div class="tag">Pitch Edition: how to explain, demo and defend our prototype</div></div>
+  <div class="strip"><span>Vol. 1 · No. 1</span><span>Friday, 30 October 2026</span><span>Prototype: github.com/Aman06-10/webvision-</span></div>
+
+  <div class="head">Filing an RTI shouldn't cost people their money, their time, or their courage.</div>
+  <div class="deck">Hamne RTI file karne ka poora safar dubara socha: apni bhasha mein bolo, sahi office tak pahuncho, paisa kabhi gum na ho, aur ruk jaaye to appeal tak saath chalo.</div>
+  <hr class="rule">
+
+  <div class="cols2">
+    <p class="drop">The Right to Information Act gives every Indian citizen the power to ask the government for records. The law is strong. The experience of using it is not. On the central portal, a request for a state office is returned and the fee is not refunded. The text box accepts only English letters and fourteen symbols, so a villager cannot write in Hindi, let alone Tamil. If money is cut and no registration number comes, the portal tells you to wait up to two days and not try again. The first-appeal button may refuse to open, and the reasons sit inside a long FAQ.</p>
+    <p>After that comes the bigger wall. Reports on the Information Commissions say the Central Information Commission returned 14,603 cases without orders in a single year, many for format defects, and that about 3.85 lakh appeals and complaints were pending across 28 commissions in mid-2026. People who are rejected on a technicality often do not come back.</p>
+    <p>Our project is a <b>redesign concept</b>, not the official portal. It shows that most of these failures can be prevented by design: a voice-first drafting flow, a pre-payment office check, a payment that cannot be lost or doubled, and tools that explain the appeal process in plain words.</p>
+    <div class="box"><h3>The pitch in one line</h3>"We help any Indian file an RTI in their own language, to the right office, with a payment that never loses their money, and then help them appeal when it stalls."</div>
+    <div class="box"><h3>Who is it for, and why</h3>
+      <b>1. The citizen</b>, especially rural and non-English users, who loses fee or hope to avoidable mistakes.<br>
+      <b>2. Civil society and journalists</b>, who file in volume and need appeals that are not returned on format.<br>
+      <b>3. The government itself</b>: fewer returned requests, fewer helpline emails, fewer lost appeals, more trust in a flagship transparency law.</div>
+  </div>
+
+  <div class="stats">
+    <div><span class="big">14,603</span><span>cases returned by CIC without orders, Jul 2025 to Jun 2026 (31,179 registered)</span></div>
+    <div><span class="big">3.85 L</span><span>appeals and complaints pending in 28 commissions, 30 Jun 2026</span></div>
+    <div><span class="big">24–48</span><span>working hours a paid applicant may wait for a registration number</span></div>
+    <div><span class="big">3000</span><span>characters in the request box, English letters and 14 symbols only</span></div>
+  </div>
+  <div class="small">Sources: PTI report on the SNS assessment (13 Oct 2026); rtionline.gov.in Guidelines and FAQ (read 30 Oct 2026). Figures from different reports use different definitions, so quote the source when you say a number.</div>
+  <h2>Your 30-second pitch</h2>
+  <div class="quote">"Every Indian has a right to ask the government for information. But the request box takes only English letters, the portal sends state requests back with no refund, and when a payment stalls it tells you to wait two days and not retry. We rebuilt the journey: speak in your own language, we check the office before you pay, a slow bank can never cost you twice, and if the request stalls we guide you through the appeal in the Commission's own format. It's a working prototype, built on the portal's own published rules."</div>
+  
+</section>
+
+<!-- ================= PAGE 2 ================= -->
+<section class="page">
+  <div class="mast" style="padding:3px 0"><h1 style="font-size:20pt">The Problem, with receipts</h1></div>
+  <div class="deck" style="margin-top:6px">Jab judge poochhe "yeh problem asli hai?", to yeh page khol do. Har line ke saath saboot ka darja likha hai.</div>
+
+  <table>
+    <tr><th style="width:30%">What goes wrong</th><th>Evidence</th><th style="width:15%">Strength</th></tr>
+    <tr><td>Wrong portal: state office on the central portal</td><td>FAQ: such requests are returned without any refund of fee. The portal is only for central public authorities.</td><td><span class="tag src">READ ON PORTAL</span></td></tr>
+    <tr><td>Text box locks out Indian languages</td><td>Guidelines: max 3000 characters; only A-Z a-z 0-9 and , . - _ ( ) / @ : & ? \ %. Longer text goes in as a PDF.</td><td><span class="tag src">READ ON PORTAL</span></td></tr>
+    <tr><td>Money cut, no number</td><td>Registration number is created after reconciliation, 24 to 48 working hours; "do not make additional attempt".</td><td><span class="tag src">READ ON PORTAL</span></td></tr>
+    <tr><td>Payments fail for avoidable reasons</td><td>FAQ lists seven: card online-use flag off, session timeout, wrong OTP, wrong card details, low balance, switching mode, UPI request not approved.</td><td><span class="tag src">READ ON PORTAL</span></td></tr>
+    <tr><td>First appeal will not open</td><td>FAQ: blocked if physically transferred to a body not on the portal, or if 30 days have not passed without a reply.</td><td><span class="tag src">READ ON PORTAL</span></td></tr>
+    <tr><td>Second appeals returned for format</td><td>CIC returned 14,603 cases against 31,179 registered (Jul 2025 to Jun 2026); nine commissions returned 37,701. About 95% of earlier CIC returns were reportedly never re-filed.</td><td><span class="tag src">REPORT (PTI/SNS)</span> returned vs registered may not count the same things</td></tr>
+    <tr><td>Backlog and long waits</td><td>About 3.85 lakh pending across 28 commissions on 30 Jun 2026; 14 commissions may take a year or more.</td><td><span class="tag src">REPORT (PTI/SNS)</span></td></tr>
+    <tr><td>Exemptions used heavily</td><td>Section 8(1)(j), personal information, is the most invoked exemption in CIC reporting (2019-20).</td><td><span class="tag src">REPORT, older data</span></td></tr>
+    <tr><td>Low rural use</td><td>In Chhattisgarh, the one state that records it, about 21% of applications came from rural applicants.</td><td><span class="tag src">STUDY, one state</span></td></tr>
+    <tr><td>Law under strain</td><td>DPDP Act Section 44(3) rewrites RTI Section 8(1)(j); challenged in the Supreme Court; sources disagree on when it applies.</td><td><span class="tag src">REPORTS, contested</span></td></tr>
+    <tr><td>Risk to RTI users</td><td>CHRI counts at least 107 activists killed for using the RTI Act.</td><td><span class="tag src">REPORT (CHRI)</span></td></tr>
+  </table>
+
+  <div class="cols2">
+    <div class="box"><h3>How to say it</h3>
+      <div class="say">"This is not a guess. We read the portal's own guidelines and FAQ, and the Central Information Commission's second-appeal guidelines, and we measured the gaps against them."</div>
+      <div class="say">"Last year the CIC returned 14,603 cases without orders. Our appeal tools are built on the Commission's own checklist, so a citizen finds the defect before filing."</div>
+    </div>
+    <div class="box dark"><h3>Do not say</h3>
+      "The portal is broken." We read it; we did not test it end to end.<br>
+      "Mobile is bad / CAPTCHA fails." We did not test either.<br>
+      "Our checker will stop appeals being returned." That is our hypothesis, not a result.<br>
+      "All 22 languages work." Only Hindi and English are verified.</div>
+  </div>
+
+  <h2>The pain, in four steps of a citizen's journey</h2>
+  <div class="cols2">
+    <p><b>Before filing.</b> Which office? Which portal? How do I word it? Questions that ask "why" or for an opinion are often refused, because the Act covers information in records. A person who does not read English has no way in at all.</p>
+    <p><b>Paying.</b> Seven ways to fail, a registration number that may take two days, and a warning not to retry. A worried user retries anyway, and that is how fees get doubled.</p>
+    <p><b>Waiting.</b> The 30-day clock is a black box. Status needs a registration number, an email, a CAPTCHA and an OTP that can arrive late.</p>
+    <p><b>Appealing.</b> A refusal cites a section the user cannot read. The appeal window is easy to miss. The Commission's format is strict, and the biggest document of the whole process is the one most likely to be sent back.</p>
+  </div>
+</section>
+
+<!-- ================= PAGE 3 ================= -->
+<section class="page">
+  <div class="mast" style="padding:3px 0"><h1 style="font-size:20pt">The Solution, feature by feature</h1></div>
+  <div class="deck" style="margin-top:6px">Har problem ke saamne humne kya banaya, aur sach kya hai: bana hua, demo, ya baaki.</div>
+
+  <table class="tight">
+    <tr><th style="width:24%">Problem</th><th style="width:44%">What we built</th><th>Status</th></tr>
+    <tr><td>Language barrier</td><td>Speak or type in your language; get an English or Hindi draft shown next to your own words; Listen button reads it back. Typed-out draft so users see it form.</td><td><span class="tag ok">BUILT</span> Hindi + English verified; others beta with a warning</td></tr>
+    <tr><td>Wrong office</td><td>Office finder before payment: keyword rules (English, Hindi, Hinglish), then embeddings, then a chat model that may say "unknown". Shows confidence, closest alternatives, and warns when an office is state-level.</td><td><span class="tag ok">BUILT</span> demo list of 22 offices</td></tr>
+    <tr><td>Character rules and limits</td><td>Live counter, the real portal character rule, one-tap auto-fix (for example Don't becomes Dont), Hindi or long drafts flagged as PDF attachments, autosave.</td><td><span class="tag ok">BUILT</span></td></tr>
+    <tr><td>Refused wording</td><td>Hints while writing: ask for records not opinions; remove Aadhaar or PAN numbers. Ten starter requests (ration, roads, PF, pension, electricity, police, water, land, hospital, passport) in English and Hindi.</td><td><span class="tag ok">BUILT</span></td></tr>
+    <tr><td>Lost or doubled payment</td><td>State machine: a timeout shows Confirming, never Failed; background reconciliation resolves it; idempotency key plus a one-active-payment database rule block double payment; signed, replay-safe webhook; RTI number only after confirmed payment.</td><td><span class="tag demo">DEMO</span> mock gateway; logic is real and tested</td></tr>
+    <tr><td>Avoidable payment failures</td><td>"Before you pay" checklist from the portal's own seven reasons; attachment-name checker (no spaces, no identity documents).</td><td><span class="tag ok">BUILT</span></td></tr>
+    <tr><td>Appeal opaque</td><td>Appeal checker: open or closed, why, and every date (reply due, first-appeal window, second appeal opens after 45 days, 90-day limit).</td><td><span class="tag ok">BUILT</span> unit-tested</td></tr>
+    <tr><td>Appeals returned</td><td>First-appeal drafter; second-appeal drafter on the CIC's Rule 8 format with its mandatory-document checklist, late-appeal and condonation checks.</td><td><span class="tag ok">BUILT</span> impact unproven</td></tr>
+    <tr><td>Refusal not understood</td><td>"Understand a reply": which section is cited, what it covers, usual grounds, whether reasons and appeal rights were given. One tap carries the grounds into a first-appeal draft.</td><td><span class="tag ok">BUILT</span> explains only, no legal advice</td></tr>
+    <tr><td>No reminders</td><td>Reminder panel with dates already worked out; demo button jumps ahead.</td><td><span class="tag demo">DEMO</span> in-app only, no email or SMS</td></tr>
+    <tr><td>Hard to get help</td><td>Ask-in-your-words assistant that answers only from a small RTI knowledge base, cites its sources, refuses off-topic questions, and reads answers aloud.</td><td><span class="tag ok">BUILT</span> knowledge base needs verifying against the Act</td></tr>
+    <tr><td>Records kept 3 years</td><td>Receipt download and print to PDF; grouped registration numbers when a request is forwarded.</td><td><span class="tag ok">BUILT</span> forwarding is simulated</td></tr>
+    <tr><td>Accessibility</td><td>English and Hindi interface, text-size controls, dark mode, keyboard and screen-reader labels, reduced-motion support, 44-pixel touch targets.</td><td><span class="tag ok">BUILT</span> text contrast measured; no screen-reader test</td></tr>
+  </table>
+
+  <div class="cols2">
+    <div class="box"><h3>The design idea in one paragraph</h3>
+      Put <b>rules first and AI second</b>. Dates, character limits, payment states and the CIC checklist are plain, testable rules, so they are predictable and cheap. AI is used where language is hard: speech, translation, understanding a request, answering questions. Every AI call has a fallback, so the demo never dead-ends. And when the AI is unsure, the app says so and lets the user choose.</div>
+    <div class="box"><h3>The one-liner for "why this matters"</h3>
+      A transparency law only works if ordinary people can use it. When the front door asks for English, a card with online use switched on, and a perfect appeal format, the people it was written for are the ones left outside. This prototype shows the door can be widened without changing the law.</div>
+  </div>
+</section>
+
+<!-- ================= PAGE 4 ================= -->
+<section class="page">
+  <div class="mast" style="padding:3px 0"><h1 style="font-size:20pt">How it works and what it is built with</h1></div>
+  <div class="deck" style="margin-top:6px">Tech stack saaf shabdon mein, aur har choice ka karan.</div>
+
+  <div class="arch">
+    <div class="n"><b>Browser</b>React 18 + TypeScript + Vite. Hand-written CSS. Mic recording, English and Hindi UI, dark mode.</div>
+    <div class="a">→</div>
+    <div class="n"><b>API</b>Python FastAPI. All keys live here, never in the browser. Rate limiter per service. SQLite.</div>
+    <div class="a">→</div>
+    <div class="n"><b>NVIDIA models</b>Speech to text, text to speech, translate, chat, embeddings. Hosted, called from the API only.</div>
+  </div>
+
+  <table>
+    <tr><th style="width:17%">Layer</th><th style="width:30%">Technology</th><th>Why we chose it</th></tr>
+    <tr><td>Frontend</td><td>React 18, TypeScript, Vite</td><td>Typed code, fast reloads. No UI library, so the design is ours and not generic.</td></tr>
+    <tr><td>Styling and motion</td><td>Hand-written CSS with theme variables; scroll reveal, count-up figures, typed draft, confetti</td><td>Light and dark from one set of variables; all motion switches off for users who prefer reduced motion.</td></tr>
+    <tr><td>Backend</td><td>Python, FastAPI, uvicorn</td><td>Fast to build, typed requests, easy tests.</td></tr>
+    <tr><td>Data</td><td>SQLite (applications, payments, events, children)</td><td>Zero setup for a demo. A partial unique index enforces one live payment per request. Production would use Postgres.</td></tr>
+    <tr><td>Payment logic</td><td>Own state machine, idempotency key, reconciliation job, HMAC-signed webhook, mock gateway</td><td>Solves the "money cut, no number" case in a way that can be tested exactly.</td></tr>
+    <tr><td>Rules engines</td><td>Office finder, appeal dates, appeal drafter and checker, reply reviewer, draft checker</td><td>Deterministic and explainable. Built from the portal and CIC's own published pages.</td></tr>
+    <tr><td>Speech to text</td><td>NVIDIA Parakeet multilingual (Riva, over gRPC)</td><td>Hindi tested end to end: a synthesized Hindi sentence came back word for word.</td></tr>
+    <tr><td>Text to speech</td><td>NVIDIA Magpie multilingual</td><td>Hindi and English voices; other languages fall back to the browser voice.</td></tr>
+    <tr><td>Translation</td><td>NVIDIA Riva Translate 4B Instruct v2</td><td>Reliable for Hindi and English. We measured it mistranslating Tamil, Telugu, Marathi and Gujarati, so those are marked beta.</td></tr>
+    <tr><td>Chat and wording</td><td>NVIDIA Nemotron 3.5 Lightning 30B, thinking off</td><td>Fast replies (about a second) for help answers and wording polish. Prompts forbid inventing facts.</td></tr>
+    <tr><td>Search</td><td>NVIDIA Nemotron 3.5 Embed 1B</td><td>Matches questions to the knowledge base and requests to offices. A similarity threshold refuses off-topic questions.</td></tr>
+    <tr><td>Quality</td><td>pytest, 47 tests; contrast audit on every page, both themes</td><td>Payment edge cases, every appeal boundary day, office finder fallbacks, rate limiter, draft rules.</td></tr>
+  </table>
+
+  <div class="cols2">
+    <div class="box"><h3>Three engineering choices to be proud of</h3>
+      <b>1. Fallback everywhere.</b> No AI key, a timeout or a rate limit never ends the flow. The office finder drops back to keyword rules; translation reports "unavailable" and the browser mic takes over.<br>
+      <b>2. We tested the AI and reported what failed.</b> Several listed models were retired or not deployed for the account; Riva Translate gave Hungarian for English to Hindi until we found the exact prompt format. We kept what worked and flagged the rest.<br>
+      <b>3. Grounded, not guessed.</b> Help answers only from our knowledge base, with sources; the appeal tools follow the CIC's own checklist.</div>
+    <div class="box"><h3>Honest limits to state yourself</h3>
+      NVIDIA's hosted models are a trial service; reports say about 40 requests a minute, and NVIDIA says limits vary. We throttle at 35 per minute per service and show counts at /usage. Production would need a paid or self-hosted deployment.<br>
+      Mic and speech depend on the internet.<br>
+      SQLite and the mock gateway are for the demo only.<br>
+      Email-verified access to "My requests" is not built yet.</div>
+  </div>
+</section>
+
+<!-- ================= PAGE 5 ================= -->
+<section class="page">
+  <div class="mast" style="padding:3px 0"><h1 style="font-size:20pt">The 3-minute demo, second by second</h1></div>
+  <div class="deck" style="margin-top:6px">Is order mein dikhao. Har step mein: kya dabana hai, kya bolna hai, aur agar fail ho to backup.</div>
+
+  <div class="step"><div class="time">0:00</div><div><b>Landing page.</b> Scroll to "What goes wrong today, and what changes here".
+    <div class="say">"RTI is a right. But a state request filed on the central portal comes back with no refund, and the box accepts no Hindi. We rebuilt the journey."</div></div></div>
+
+  <div class="step"><div class="time">0:20</div><div><b>New request, speak in Hindi.</b> Enter an email, keep "You will speak in" Hindi, press the mic and say: <i>मुझे अपने वार्ड में पिछले साल हुई सड़क मरम्मत का टेंडर और खर्च जानना है।</i> Watch your words and the typed-out English draft appear side by side. Press Listen.
+    <div class="say">"A villager speaks. We transcribe, translate, and show both, so they can check what is filed in their name."</div>
+    <span class="small"><b>Backup:</b> mic blocked or noisy? Tap the "Road repair" starter, then "Prepare official draft".</span></div></div>
+
+  <div class="step"><div class="time">1:00</div><div><b>Continue to the office.</b> It suggests the municipal corporation and shows the state-office warning.
+    <div class="say">"Before paying, we check the office. This one is a state body, so we say plainly it is not on rtionline.gov.in; filing it there returns the request with no refund."</div></div></div>
+
+  <div class="step"><div class="time">1:25</div><div><b>Pay with a slow bank.</b> In the Demo-only box choose "Bank does not respond", press Pay. It shows Confirming. After about 8 seconds the RTI number appears with a small confetti burst. Open Reminders and tap "+31 days".
+    <div class="say">"Today the portal says wait up to 48 hours and do not retry. We show Confirming, check with the bank ourselves, and block a second payment. Payments here are simulated; the logic is real and tested."</div>
+    <span class="small"><b>Backup:</b> if it hangs, press "Works normally" next time; the story is the same.</span></div></div>
+
+  <div class="step"><div class="time">1:55</div><div><b>Appeal tools.</b> Open Appeal. Tap "Filed 45 days ago, no reply" and read the verdict and dates. Then "Understand a reply": paste <i>Rejected under Section 8(1)(j) of the RTI Act.</i> and press Explain; it names the clause, flags that no appeal rights were stated, and offers grounds. Press "Use these in a first appeal".
+    <div class="say">"A refusal usually cites a section nobody explains. We say what it covers and what a citizen can challenge. We explain; we do not give legal advice."</div></div></div>
+
+  <div class="step"><div class="time">2:30</div><div><b>Second appeal checker.</b> Open "Second appeal", enter only a name, press Prepare. A list of "Must fix" items appears.
+    <div class="say">"The Commission returned 14,603 cases without orders last year, many for format. We turned its own checklist into a checker, so the defect is found before filing. Whether it reduces returns is our hypothesis, and a pilot would test it."</div></div></div>
+
+  <div class="step"><div class="time">2:50</div><div><b>Close.</b> Open Help, tap "My payment was cut but I have no number".
+    <div class="say">"Ask in your own words, hear the answer, see the source. This is a concept, not the official portal. Our ask: a pilot with an RTI help organisation, and the real office directory."</div></div></div>
+
+  <div class="cols2" style="margin-top:6px">
+    <div class="box"><h3>If something fails live</h3>
+      <b>Page shows "Can't reach the server":</b> the API is down. In a terminal run ./start.sh (see RUN_LOCAL.md).<br>
+      <b>Voice or Help silent:</b> internet or NVIDIA rate limit; say so, and use the starter requests.<br>
+      <b>Anything else:</b> have a 3-minute screen recording ready and keep talking over it.</div>
+    <div class="box"><h3>Delivery tips</h3>
+      Keep the browser at normal zoom, light theme on a projector.<br>
+      Say the number first, then the source.<br>
+      Pause for the typed draft; let the audience see it form.<br>
+      Own the limits before they ask: payments mock, Hindi and English verified.</div>
+  </div>
+</section>
+
+<!-- ================= PAGE 6 ================= -->
+<section class="page">
+  <div class="mast" style="padding:3px 0"><h1 style="font-size:20pt">Judges will ask: honest answers</h1></div>
+  <div class="deck" style="margin-top:6px">Yeh sawaal zaroor aayenge. Jawab chhote aur sach rakho; "humein nahi pata" bolna bhi theek hai agar saath mein bata do ki kaise pata karoge.</div>
+
+  <div class="cols2">
+    <div class="qa"><b>Is this the official portal? Does it file real RTIs?</b><div class="ans">No. It is a redesign concept. Nothing is filed and payments are simulated.</div></div>
+    <div class="qa"><b>Why not just fix the existing portal?</b><div class="ans">That is the goal: these are suggestions the owners could adopt. We built a working prototype so the argument is concrete, not a slide.</div></div>
+    <div class="qa"><b>How accurate are voice and translation?</b><div class="ans">Hindi and English are verified end to end, and translation between them is reliable. Other languages are beta: we found Tamil, Telugu, Marathi and Gujarati mistranslated, so the app warns and asks the user to review.</div></div>
+    <div class="qa"><b>Why not Bhashini, the government's own language service?</b><div class="ans">We looked at it; its docs say it is free for non-production use. We have not tested it, because that needs an account and credentials, and we do not claim what we have not tested. The design lets a dedicated language service be plugged in; that is the route to more than two languages.</div></div>
+    <div class="qa"><b>How good is the office finder?</b><div class="ans">On 26 test queries we tuned against it got 26 right; on a separate set of 18 written afterwards it got 17. The sets are small, and the 22 offices are demo data. It can answer "unknown" and shows alternatives.</div></div>
+    <div class="qa"><b>Is the appeal tool legal advice?</b><div class="ans">No. It follows the Commission's published guidelines and the Act. The Commission may still return an appeal, and a late appeal can still be admitted for good reason; we do not judge that.</div></div>
+    <div class="qa"><b>Does it prevent returned appeals?</b><div class="ans">Unknown. Returns are documented; our checker targets the documented causes. A pilot would measure it. We call it a hypothesis.</div></div>
+    <div class="qa"><b>What about privacy? RTI users face real danger.</b><div class="ans">We store only an email, the request text and payment events, and we warn users to remove ID numbers. A real deployment needs email-verified access (not built yet), encryption, retention limits and DPDP compliance. We would design it with RTI safety groups.</div></div>
+    <div class="qa"><b>Can it scale?</b><div class="ans">Not as built: SQLite, a mock gateway and trial-tier AI limits (reportedly about 40 requests a minute). The architecture separates API, rules and AI, so production moves to Postgres, a job queue and paid or self-hosted models.</div></div>
+    <div class="qa"><b>Is the Help assistant reliable?</b><div class="ans">It answers only from a small knowledge base and cites sources; off-topic questions are refused. The knowledge base paraphrases the Act and portal text and still needs checking against the Act.</div></div>
+    <div class="qa"><b>What did you build versus reuse?</b><div class="ans">Built: the flow, payment state machine, rules engines, appeal tools, UI and tests. Reused: NVIDIA's hosted models. Read and cited: the portal and CIC pages.</div></div>
+    <div class="qa"><b>What is the DPDP Act's effect on RTI?</b><div class="ans">Section 44(3) rewrites the personal-information exemption and is contested in the Supreme Court; sources disagree on timing. We do not take a side; our reply explainer notes that clause (j) is contested.</div></div>
+    <div class="qa"><b>Who would use and pay for this?</b><div class="ans">It is a public good, not a product. Natural pilots: RTI help organisations, journalists, and assisted-filing points such as common service centres. The government benefit is fewer returned requests and helpline emails.</div></div>
+    <div class="qa"><b>What is next?</b><div class="ans">Email-verified access, the real office directory, more languages through a dedicated service, real notifications, an assisted mode for rural users, and a pilot to measure returned appeals.</div></div>
+  </div>
+  <div class="box" style="margin-top:8px"><h3>Roadmap you can promise</h3>
+      <b>Next:</b> email-verified access; real office directory; real reminders by email, SMS and WhatsApp.<br>
+      <b>Then:</b> more languages through a dedicated language service; assisted filing for rural users; a pilot with an RTI help group to measure returned appeals.<br>
+      <b>Long term:</b> offer the rules (appeal checklist, character rules, wrong-office warning) as an open library so the official portals can adopt them.</div>
+  <div class="small" style="margin-top:6px;text-align:center">Prototype and source: github.com/Aman06-10/webvision- · Run it: ./start.sh (see RUN_LOCAL.md) · This edition is a speaking guide; the project is a concept, not the official portal, and nothing here is legal advice.</div>
+</section>
+
+<!-- ================= PAGE 7 ================= -->
+<section class="page">
+  <div class="mast" style="padding:3px 0"><h1 style="font-size:20pt">Cheat sheet: facts, words and checklist</h1></div>
+
+  <div class="cols2" style="margin-top:6px">
+    <div class="box"><h3>What is verified, and what is not</h3>
+      <b class="ok">Verified in testing:</b> Hindi speech to text and text to speech (round trip); Hindi and English translation; help answers grounded in sources, off-topic refused; office finder on two query sets; appeal dates at every boundary (unit tests); second-appeal checklist; payment edge cases (47 tests pass); full browser flow in English and Hindi, dark and light; contrast of all text.<br>
+      <b class="no">Not verified or not built:</b> real payments or filing; languages beyond Hindi and English; email or SMS reminders; email-verified access; the real office list; screen-reader testing; real-world effect on returned appeals; mobile layout of the appeal tools in Hindi.</div>
+
+    <div class="box"><h3>Words you may need</h3>
+      <b>RTI</b>: Right to Information Act, 2005.<br>
+      <b>CPIO / PIO</b>: the officer who must reply, within 30 days.<br>
+      <b>Nodal Officer</b>: receives online requests on the portal and forwards them to the CPIO.<br>
+      <b>First appeal (FAA)</b>: free; to a senior officer in the same office; within 30 days of the reply.<br>
+      <b>Second appeal (CIC/SIC)</b>: to the Information Commission; after the first is decided or 45 days pass; within 90 days.<br>
+      <b>Section 8(1)(j)</b>: personal-information exemption, the most cited.<br>
+      <b>Section 6(3)</b>: wrong office, so the request is transferred.<br>
+      <b>BPL</b>: below poverty line, no fee with a certificate.<br>
+      <b>Reconciliation</b>: matching bank records to payments, which is why a number can take days.<br>
+      <b>Idempotency key</b>: a unique tag so the same payment request can never charge twice.<br>
+      <b>Speech to text / text to speech</b>: turning voice into words and words into voice.</div>
+  </div>
+
+  <h2>Numbers you can quote, with their source</h2>
+  <table>
+    <tr><th style="width:36%">Number</th><th>Source and caution</th></tr>
+    <tr><td>14,603 returned of 31,179 registered (CIC)</td><td>PTI on the SNS assessment, 13 Oct 2026; Jul 2025 to Jun 2026. "Returned" and "registered" may not count the same things.</td></tr>
+    <tr><td>37,701 returned across nine commissions</td><td>Same report; only nine commissions gave data, five did not.</td></tr>
+    <tr><td>3.85 lakh pending in 28 commissions</td><td>Same report, as of 30 Jun 2026. Appeals plus complaints.</td></tr>
+    <tr><td>Waits of a year or more in 14 commissions</td><td>Same report (estimates, not promises).</td></tr>
+    <tr><td>24 to 48 working hours for a registration number; 3000 characters; seven payment failure reasons</td><td>rtionline.gov.in Guidelines and FAQ, read 30 Oct 2026. The portal may change.</td></tr>
+    <tr><td>Second appeal after 45 days or the decision; within 90 days; format of eleven items</td><td>cic.gov.in Second Appeal Guidelines and FAQ, read 30 Oct 2026; RTI Rules, 2012, Rule 8.</td></tr>
+    <tr><td>About 21% rural applicants</td><td>Study covering one state (Chhattisgarh); not national.</td></tr>
+    <tr><td>At least 107 RTI activists killed</td><td>CHRI's tracking, as cited by the media.</td></tr>
+  </table>
+
+  <div>
+    <div class="box"><h3>Before you walk on stage</h3>
+      <ul class="chk">
+        <li>Run <b>./start.sh</b> a few minutes early; open http://localhost:8001/health and see llm, stt and tts all true.</li>
+        <li>Open http://localhost:5173 once; allow the microphone in Chrome and test one Hindi sentence.</li>
+        <li>Internet on; hotspot as backup.</li>
+        <li>Use a fresh email so the dashboard starts clean.</li>
+        <li>Light theme on a projector; normal text size.</li>
+        <li>Screen recording of the full demo saved on the desktop.</li>
+        <li>Close other tabs and silence notifications.</li>
+        <li>After the event, rotate the NVIDIA keys.</li>
+      </ul></div>
+
+  </div>
+
+
+</section>
+
+</body>
+</html>
