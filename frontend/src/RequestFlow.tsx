@@ -158,7 +158,7 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
 
   async function findAuth() {
     setBusy('auth'); setNotice('')
-    try { const r = await api.findAuthority(draft); setAuth(r); setChosen(r.key === 'unknown' ? '' : r.key) }
+    try { const r = await api.findAuthority(draft); setAuth(r); setChosen(r.key === 'unknown' || r.confidence < 0.45 ? '' : r.key) }
     catch (e) { fail(e) } finally { setBusy('') }
   }
 
@@ -269,6 +269,16 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
                 <label className="field"><span>{t('your_words')}</span>
                   <textarea rows={6} value={original} onChange={e => setOriginal(e.target.value)} disabled={locked} lang={src} />
                 </label>
+                {!locked && !original.trim() && (
+                  <div className="examples">
+                    <div className="small muted">{t('examples_h')}</div>
+                    <div className="chips">
+                      {(['eg1', 'eg2', 'eg3'] as Key[]).map(k => (
+                        <button key={k} type="button" className="chip chip-wide" onClick={() => setOriginal(t(k))}>{t(k)}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <button className="btn" type="button" onClick={() => toDraft(original)} disabled={locked || !original.trim() || !!busy}>
                   {t('make_draft')} <span aria-hidden>→</span>
                 </button>
@@ -316,7 +326,7 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
 
             {busy === 'auth' && <div className="skeleton" role="status"><span /><span /><span className="sr-only">{t('checking_auth')}</span></div>}
 
-            {auth && busy !== 'auth' && (
+            {auth && busy !== 'auth' && auth.key !== 'unknown' && (
               <div className="result rise" aria-live="polite">
                 <div className="small muted">{t('likely')}</div>
                 <div className="result-name">{auth.authority}</div>
@@ -326,6 +336,22 @@ export default function RequestFlow({ email, setEmail, resume }: Props) {
                   <span className="small">{t('conf')}: <strong>{confLabel(auth.confidence)}</strong> · {auth.source}</span>
                 </div>
                 <div className="muted">{auth.reason}</div>
+              </div>
+            )}
+            {auth && busy !== 'auth' && (auth.key === 'unknown' || auth.confidence < 0.7) && (
+              <div className="note warn" role="status">
+                <strong>{t('unsure')}</strong>
+                {auth.key === 'unknown' && <><br />{t('tip_detail')}</>}
+              </div>
+            )}
+            {auth && busy !== 'auth' && auth.candidates.filter(c => c.key !== auth.key).length > 0 && (
+              <div className="others">
+                <div className="small muted">{t('other_offices')}</div>
+                <div className="chips">
+                  {auth.candidates.filter(c => c.key !== auth.key).map(c => (
+                    <button key={c.key} type="button" className={chosen === c.key ? 'chip on' : 'chip'} onClick={() => setChosen(c.key)}>{c.name}</button>
+                  ))}
+                </div>
               </div>
             )}
 

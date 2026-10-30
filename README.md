@@ -9,7 +9,7 @@ A redesign concept for the online RTI (Right to Information) filing experience. 
 | Problem on the current portal | What this project does |
 |---|---|
 | Hard to write a request in your own language | Speak or type in your language; get an official English or Hindi draft, shown next to your original words |
-| Filing with the wrong authority can cost the fee | Suggests the right authority and portal before payment, with a confidence level and the reason |
+| Filing with the wrong authority can cost the fee | Suggests the right authority and portal before payment, with a confidence level and the reason. Unsure cases show the closest options to pick from instead of a forced guess |
 | Money cut, no RTI number | Payment state machine. A bank timeout shows **Confirming**, never **Failed**. The app checks with the bank on its own and issues the number once confirmed |
 | Double payment risk | Idempotency key per attempt plus a database rule: one live payment per request |
 | 3000-character limit and invalid characters | Live counter, invalid characters listed with one-click removal, server-side validation, autosave |
@@ -28,7 +28,7 @@ FastAPI backend  (all API keys live here, never in the browser)
   |- /voice/translate    NVIDIA Riva translate (hi<->en), chat-model fallback
   |- /voice/speak        NVIDIA Magpie text-to-speech (hi, en)
   |- /draft/*            validate, sanitize, tidy wording (chat model)
-  |- /authority/find     keyword rules -> chat model -> rules as fallback
+  |- /authority/find     keyword rules (English, Hindi, Hinglish) -> embeddings -> chat model among the closest candidates -> "unknown"
   |- /rag/ask            embeddings search -> chat model answers from the knowledge base
   |- /applications/*     drafts, authority confirmation, payment
   |- /payments/*         state machine, mock gateway, webhook, reconciliation
@@ -119,6 +119,7 @@ Known limits, stated plainly:
 - Text-to-speech has Hindi and English voices only; other languages fall back to the browser voice.
 - The mic button in the browser was not tested by a person; the backend path was tested with a WAV file.
 - The knowledge base in `backend/app/kb.py` is general guidance from the RTI Act, 2005 and the central RTI Rules, 2012 as the author understands them. State rules differ. It is not legal advice; verify before relying on any figure.
+- **Authority detection accuracy** (22 demo authorities, live APIs): 26 of 26 on the set the keyword lists were tuned on (so optimistic), and 17 of 18 on a held-out set of paraphrases written afterwards with no keywords in mind. The one miss (road tarring in a colony, chose PWD over municipal) came back with 0.6 confidence and municipal as an alternative. Queries are in `backend/tests/queries.py`; the held-out set is small, so treat this as indicative. Vague text such as "help" returns unknown and asks for more detail.
 - The authority table is demo data, and the allowed-character set for drafts is an assumption. Replace both with the real directory and the portal's actual rules.
 - Claims about the current portal's wrong-portal warning, payment FAQ, 3000-character limit, OTP delay, CAPTCHA text and blinking GIFs come from the portal's text. Mobile behaviour and CAPTCHA malfunction were **not** tested and are not claimed.
 

@@ -185,6 +185,11 @@ textarea { resize: vertical; }
 .answer p { margin: 0; } .answer .link { justify-self: start; padding-left: 0; }
 .btn-sm svg, .link svg { margin-right: 6px; vertical-align: -3px; }
 
+.chip-wide { text-align: left; border-radius: 12px; line-height: 1.4; padding: 8px 14px; }
+.chip.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.examples { margin: -4px 0 14px; }
+.others { margin: 4px 0 16px; max-width: 640px; }
+
 /* dashboard */
 .ledger-list { list-style: none; padding: 0; margin: 20px 0; display: grid; gap: 10px; }
 .ledger-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 18px; align-items: center; padding: 14px 18px; background: #fff; border: 1.5px solid var(--line); border-radius: 12px; transition: transform .2s var(--ease), box-shadow .2s; animation: rise .4s var(--ease) both; }

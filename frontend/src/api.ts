@@ -20,7 +20,7 @@ const json = (method: string, body: unknown, headers: Record<string, string> = {
 })
 
 export type Validation = { length: number; max: number; too_long: boolean; invalid_chars: string[]; invalid_positions: number[]; ok: boolean }
-export type AuthorityResult = { key: string; authority: string; level: string; portal: string; confidence: number; reason: string; source: string }
+export type AuthorityResult = { key: string; authority: string; level: string; portal: string; confidence: number; reason: string; source: string; candidates: { key: string; name: string; score: number }[] }
 export type AppEvent = { kind: string; detail: string; at: string }
 export type Application = {
   id: number; email: string; draft: string; state: string; rti_number: string | null
